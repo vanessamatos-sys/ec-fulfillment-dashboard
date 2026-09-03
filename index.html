@@ -270,8 +270,8 @@
     <h1>Expert Crowd — Fulfillment Status</h1>
   </div>
   <div class="meta">
-    <div>Report date: <strong>August 31, 2026</strong></div>
-    <div>Source: CDR.Engagement × CDR.Company · BigQuery</div>
+    <div>Report date: <strong>September 3, 2026</strong></div>
+    <div>Source: CDR.Job × CDR.Company × CDR.Engagement · BigQuery</div>
   </div>
 </div>
 
@@ -488,9 +488,9 @@
 
   <div class="footer" style="margin-top:28px">
     <strong>Expert Crowd — Fulfillment Status</strong> ·
-    Generated August 31, 2026 ·
-    Source: <strong>CDR.Engagement × CDR.Company</strong> (BigQuery) ·
-    Next refresh: September 1, 2026
+    Generated September 3, 2026 ·
+    Source: <strong>CDR.Job × CDR.Company × CDR.Engagement</strong> (BigQuery, DeliveryModel='Expert Crowd', client-hierarchy-aware) + IJ Tracker Sheet (3 rows) ·
+    Next refresh: September 10, 2026
   </div>
 </div>
 
@@ -498,60 +498,79 @@
 // ── Data ──────────────────────────────────────────────────────────────────────
 const OPS_DATA = [
   // [client, jobId, title, matcher, posted, estEnd, status, sent, active, off, rate]
+  ['Human Union Data, Inc.',500005,'[Expert Crowd] Management Consultant — AI Evaluator & Task Designer W1 [Management Consultant]','Sebastian Almeida','2026-06-15','2026-08-31','closed',12,0,6,0.500],
+  ['Human Union Data, Inc.',500660,'[Expert Crowd] Senior Cybersecurity AI Engineer for innovative project [Cybersecurity Experts]','Sebastian Almeida','2026-06-22','2026-07-31','pending',14,0,0,0.000],
+  ['Human Union Data, Inc.',501360,'[Expert Crowd] Management Consulting Domain Lead — AI Benchmark Project [Management Consultant Director]','Sebastian Almeida','2026-06-29','2026-07-31','pending_engineer',5,0,0,0.000],
+  ['Human Union Data, Inc.',501362,'[Expert Crowd] Software Engineering Domain Lead — AI Benchmark Project [SWE Director]','Sebastian Almeida','2026-06-29','2026-07-31','pending_engineer',6,0,0,0.000],
+  ['Human Union Data, Inc.',501619,'[IJ] - Growth & Corporate Strategy — Domain Expert','Sebastian Almeida','2026-07-01','2026-07-31','pending',64,0,0,0.000],
+  ['Human Union Data, Inc.',501620,'[IJ] -  Systems, Backend & Networking — Domain Expert','Vanessa Matos','2026-07-01','—','pending_engineer',297,0,0,0.000],
+  ['Human Union Data, Inc.',501621,'[IJ] - M&A & Due Diligence — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',42,0,0,0.000],
+  ['Human Union Data, Inc.',501622,'[IJ] -  SRE / DevOps & Infrastructure — Domain Expert','Vanessa Matos','2026-07-01','—','pending_engineer',116,0,0,0.000],
+  ['Human Union Data, Inc.',501623,'[IJ] - Operations & Supply Chain — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',30,0,0,0.000],
+  ['Human Union Data, Inc.',501624,'[IJ] - Market & Competitive Research — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',131,0,0,0.000],
+  ['Human Union Data, Inc.',501625,'[IJ] - Corporate Finance / FP&A & Valuation — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',30,0,0,0.000],
+  ['Human Union Data, Inc.',501628,'[IJ] - Database & Storage Systems — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',122,0,0,0.000],
+  ['Human Union Data, Inc.',501629,'[IJ] -  Compilers & Language Tooling — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',56,0,0,0.000],
+  ['Human Union Data, Inc.',501973,'[IJ] Software Engineering Domain Lead — AI Benchmark Project','Internal','2026-07-06','2026-07-31','closed',2,0,1,0.500],
   ['Human Union Data, Inc.',503437,'[IJ - Expert Crowd] - Software Engineering — AI Benchmark Project Domain Expert','Internal','2026-07-21','2026-09-30','pending_engineer',12,11,1,1.000],
   ['Human Union Data, Inc.',503610,'[IJ - Expert Crowd] - Growth & Corporate Strategy — Domain Expert','Internal','2026-07-23','2026-09-30','pending_engineer',19,18,0,0.947],
-  ['Human Union Data, Inc.',501973,'[IJ] Software Engineering Domain Lead — AI Benchmark Project','Internal','2026-07-06','2026-07-31','closed',2,0,1,0.500],
-  ['Human Union Data, Inc.',501620,'[IJ] -  Systems, Backend & Networking — Domain Expert','Vanessa Matos','2026-07-01','—','pending_engineer',297,0,0,0.000],
-  ['Human Union Data, Inc.',501624,'[IJ] - Market & Competitive Research — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',131,0,0,0.000],
-  ['Human Union Data, Inc.',501628,'[IJ] - Database & Storage Systems — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',122,0,0,0.000],
-  ['Human Union Data, Inc.',501622,'[IJ] -  SRE / DevOps & Infrastructure — Domain Expert','Vanessa Matos','2026-07-01','—','pending_engineer',116,0,0,0.000],
-  ['Human Union Data, Inc.',501619,'[IJ] - Growth & Corporate Strategy — Domain Expert','Sebastian Almeida','2026-07-01','2026-07-31','pending',64,0,0,0.000],
-  ['Human Union Data, Inc.',501629,'[IJ] -  Compilers & Language Tooling — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',56,0,0,0.000],
-  ['Human Union Data, Inc.',501621,'[IJ] - M&A & Due Diligence — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',42,0,0,0.000],
-  ['Human Union Data, Inc.',501623,'[IJ] - Operations & Supply Chain — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',30,0,0,0.000],
-  ['Human Union Data, Inc.',501625,'[IJ] - Corporate Finance / FP&A & Valuation — Domain Expert','Sebastian Almeida','2026-07-01','—','pending_engineer',30,0,0,0.000],
-  ['Human Union Data, Inc.',500660,'[Expert Crowd] Senior Cybersecurity AI Engineer for innovative project','Sebastian Almeida','2026-06-22','2026-07-31','pending',14,0,0,0.000],
-  ['Human Union Data, Inc.',500005,'[Expert Crowd] Management Consultant — AI Evaluator & Task Designer W1','Sebastian Almeida','2026-06-15','2026-08-31','closed',12,0,6,0.500],
-  ['Human Union Data, Inc.',501362,'[Expert Crowd] Software Engineering Domain Lead — AI Benchmark Project','Sebastian Almeida','2026-06-29','2026-07-31','pending_engineer',6,0,0,0.000],
-  ['Human Union Data, Inc.',501360,'[Expert Crowd] Management Consulting Domain Lead — AI Benchmark Project','Sebastian Almeida','2026-06-29','2026-07-31','pending_engineer',5,0,0,0.000],
-  ['Meridian AI',480174,'[Expert Crowd] - Financial Model and Prompt Creator with Spreadsheet Expertise','Vanessa Matos','2026-01-12','—','closed',44,0,40,0.909],
-  ['Meridian AI',484364,'[Expert Crowd] - W3 Financial Model and Prompt Creator with Spreadsheet Expertise','Vanessa Matos','2026-02-10','—','closed',38,0,33,0.868],
-  ['Meridian AI',475194,'[Expert Crowd] - Spreadsheet Creator for Financial Modeling AI Tool','Vanessa Matos','2025-11-26','—','closed',31,0,31,1.000],
+  ['Meridian AI',474041,'[Expert Crowd] - Reviewer for Excel-Based Financial Models AI Training project [Reviewer]','Vanessa Matos','2025-11-18','2026-07-31','closed',8,0,6,0.750],
+  ['Meridian AI',475194,'[Expert Crowd] - Spreadsheet Creator for Financial Modeling AI Tool [Creator]','Vanessa Matos','2025-11-26','—','closed',31,0,31,1.000],
+  ['Meridian AI',479109,'[Internal Hours] Reviewer for Excel-Based Financial Models AI Training project','Vanessa Matos','2026-01-02','—','removed',1,0,0,0.000],
   ['Meridian AI',479577,'Spreadsheet Sanitizer for Financial Modeling AI Tool','Vanessa Matos','2026-01-07','—','closed',29,0,29,1.000],
+  ['Meridian AI',480174,'[Expert Crowd] - Financial Model and Prompt Creator with Spreadsheet Expertise [Creator]','Vanessa Matos','2026-01-12','—','closed',44,0,40,0.909],
   ['Meridian AI',481644,'Spreadsheet Editor for Financial Modeling AI','Vanessa Matos','2026-01-21','—','closed',12,0,12,1.000],
-  ['Meridian AI',474041,'[Expert Crowd] - Reviewer for Excel-Based Financial Models AI Training project','Vanessa Matos','2025-11-18','2026-07-31','closed',8,0,6,0.750],
-  ['Meridian AI',494767,'[Expert Crowd] - Reviewer for Financial Models AI Training W2','Vanessa Matos','2026-04-30','2026-09-30','active',4,4,0,1.000],
+  ['Meridian AI',484364,'[Expert Crowd] - W3 Financial Model and Prompt Creator with Spreadsheet Expertise [Creator]','Vanessa Matos','2026-02-10','—','closed',38,0,33,0.868],
+  ['Meridian AI',494767,'[Expert Crowd] - Reviewer for Financial Models AI Training W2 [Reviewer]','Vanessa Matos','2026-04-30','2026-09-30','active',4,4,0,1.000],
+  ['Meridian AI',497653,'[Expert Crowd] - Reviewer for Financial Models AI Training W3 [Reviewer]','Sebastian Almeida','2026-05-22','2026-07-31','removed',25,0,0,0.000],
+  ['Meridian AI',499645,'[Expert Crowd] - Reviewer for Financial Models AI Training W3','Sebastian Almeida','2026-06-11','—','removed',4,0,4,1.000],
+  ['Meridian AI',504665,'[Expert Crowd] - Reviewer for Financial Models AI Training W3 [Reviewer]','Sebastian Almeida','2026-08-05','—','closed',3,0,3,1.000],
   ['Meridian AI',505708,'[Expert Crowd] STEM chart analyst for AI model training','Jimmy Mitreski','2026-08-20','2026-10-30','pending_engineer',26,0,0,0.000],
-  ['Meridian AI',504665,'[Expert Crowd] - Reviewer for Financial Models AI Training W3','Sebastian Almeida','2026-08-05','—','closed',3,0,3,1.000],
-  ['Patronus AI, Inc.',505006,'[Expert Crowd] - Senior Accountant with Financial Reporting Experience','Sebastian Almeida','2026-08-10','2026-09-11','pending',143,9,1,0.070],
-  ['Patronus AI, Inc.',505015,'[Expert Crowd] - External Audit Professionals for Financial Statement Audits','Sebastian Almeida','2026-08-10','2026-09-11','pending_engineer',74,0,0,0.000],
-  ['Patronus AI, Inc.',505005,'[Expert Crowd] - Design/Engineer for CAD-Based Mechanical Engineering Solutions','Samuel Koraj','2026-08-10','2026-11-30','pending',60,0,0,0.000],
-  ['Patronus AI, Inc.',505009,'[Expert Crowd] - Operations & Research Staff for Capital Markets','Sebastian Almeida','2026-08-10','2026-09-11','pending',28,3,0,0.107],
-  ['Patronus AI, Inc.',505971,'[Expert Crowd] SAP Concur Expense expert for financial AI model training','Jimmy Mitreski','2026-08-24','2026-10-31','pending',9,0,0,0.000],
+  ['Patronus AI, Inc.',504375,'CAD Engineer for AI Model Evaluation','Samuel Koraj','2026-07-31','2026-09-30','removed',1,0,0,0.000],
+  ['Patronus AI, Inc.',505005,'[Expert Crowd] - Design/Engineer for CAD-Based Mechanical Engineering Solutions      [CAD Bench]','Samuel Koraj','2026-08-10','2026-11-30','removed',97,0,0,0.000],
+  ['Patronus AI, Inc.',505006,'[Expert Crowd] - Senior Accountant with Financial Reporting Experience [Finance and Accouting Bench]','Sebastian Almeida','2026-08-10','2026-09-11','pending',143,11,0,0.077],
+  ['Patronus AI, Inc.',505009,'[Expert Crowd] - Operations & Research Staff for Capital Markets [Capital Markets Bench]','Sebastian Almeida','2026-08-10','2026-09-11','pending',28,3,0,0.107],
+  ['Patronus AI, Inc.',505015,'[Expert Crowd] - External Audit Professionals for Financial Statement Audits [Financial Audit Bench]','Sebastian Almeida','2026-08-10','2026-09-11','pending_engineer',74,0,0,0.000],
+  ['Patronus AI, Inc.',505971,'[Expert Crowd] SAP Concur Expense expert for financial AI model training','Jimmy Mitreski','2026-08-24','2026-10-31','pending_start',9,1,0,0.111],
   ['Patronus AI, Inc.',506027,'[Expert Crowd] Sr Commercial Contracts SME – AI Model Training','Jimmy Mitreski','2026-08-24','2026-10-31','draft',1,0,0,0.000],
-  ['Scale AI',496064,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 2 - W3','Vanessa Matos','2026-05-11','—','closed',440,0,14,0.032],
-  ['Scale AI',496013,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 1 - W3','Vanessa Matos','2026-05-11','—','closed',225,0,8,0.036],
-  ['Scale AI',495215,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 2','Jimmy Mitreski','2026-05-04','2026-07-31','closed',176,0,8,0.045],
+  ['Patronus AI, Inc.',506750,'[Expert Crowd] Sr Cap Table SME – AI Model Training [Cap Table Management Bench]','Sebastian Almeida','2026-09-02','2026-10-30','pending',1,0,0,0.000],
+  ['Scale AI',494688,'[Expert Crowd] - Full Stack Software Engineer for AI Training Tier 1 [RFP - Full Stack SWE]','Vanessa Matos','2026-04-29','2026-07-31','removed',1,0,0,0.000],
+  ['Scale AI',494691,'[Expert Crowd] - Full Stack Software Engineer for AI Training Tier 2 [RFP - Full Stack SWE]','Vanessa Matos','2026-04-29','—','removed',1,0,0,0.000],
+  ['Scale AI',494817,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 1 [OpenClaw]','Jimmy Mitreski','2026-04-30','2026-07-31','removed',51,0,0,0.000],
+  ['Scale AI',495215,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 2 [OpenClaw]','Jimmy Mitreski','2026-05-04','2026-07-31','closed',176,0,8,0.045],
+  ['Scale AI',496013,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 1 - W3 [OpenClaw]','Vanessa Matos','2026-05-11','—','closed',225,0,8,0.036],
+  ['Scale AI',496064,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 2 - W3 [OpenClaw]','Vanessa Matos','2026-05-11','—','closed',440,0,14,0.032],
+  ['Scale AI',497312,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 1 - W5 [OpenClaw]','Sebastian Almeida','2026-05-20','—','removed',3,0,0,0.000],
+  ['Scale AI',497313,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 2 - W5 [OpenClaw]','Sebastian Almeida','2026-05-20','—','removed',1,0,0,0.000],
+  ['Scale AI',503184,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 1 - W3 [OpenClaw]','Sebastian Almeida','2026-07-17','2026-07-31','closed',1,0,1,1.000],
   ['Scale AI',505095,'[Expert Crowd] Personal Finance consultants for AI model','Jimmy Mitreski','2026-08-11','2026-09-30','pending',18,0,0,0.000],
-  ['Scale AI',503184,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 1 - W3','Sebastian Almeida','2026-07-17','2026-07-31','closed',1,0,1,1.000],
-  ['Vetto Inc',495857,'[Expert Crowd] - Technical Operator for LLM Evaluation Enhancement W5','Vanessa Matos','2026-05-08','2026-07-31','pending',167,0,11,0.066],
-  ['Vetto Inc',494627,'[Expert Crowd] - Technical Operator for LLM Evaluation Enhancement W4','Vanessa Matos','2026-04-29','2026-06-30','pending',153,0,51,0.333],
-  ['Vetto Inc',491846,'[Expert Crowd] - Technical Operator for LLM Evaluation Enhancement','Vanessa Matos','2026-04-08','2026-05-29','pending_engineer',80,0,69,0.863],
-  ['Vetto Inc',492307,'[Expert Crowd] W1 Software Engineer for Coding Task Evaluation (LLM Training)','Jimmy Mitreski','2026-04-13','2026-05-29','pending',36,0,23,0.639],
-  ['Vetto Inc',492449,'[Expert Crowd] - Investment Consultant Expert to Review AI model','Jimmy Mitreski','2026-04-13','2026-06-30','closed',31,0,15,0.484],
-  ['Vetto Inc',496363,'[Expert Crowd] H - Software Engineer for Coding Task Evaluation (LLM Training)','Jimmy Mitreski','2026-05-13','2026-06-30','pending_engineer',16,0,16,1.000],
-  ['Vetto Inc',494097,'[Expert Crowd] - AI Researchers for LLM Evaluation Enhancement','Jimmy Mitreski','2026-04-24','2026-05-29','pending_expiration',12,0,9,0.750],
-  ['Vetto Inc',495689,'[Expert Crowd] - Coding Domain Lead for AI Training Data Platform 2','Vanessa Matos','2026-05-07','2026-08-31','closed',11,0,5,0.455],
-  ['Vetto Inc',496981,'[Expert Crowd] Tech Support Specialist for LLM Enhacements','Sebastian Almeida','2026-05-18','2026-06-30','closed',5,0,5,1.000],
-  ['Vetto Inc',495798,'[Expert Crowd] W3 - Software Engineer for LLM training','Jimmy Mitreski','2026-05-08','2026-06-30','draft',1,0,0,0.000],
+  ['Vetto Inc',490865,'JavaScript/TypeScript Senior Software Engineer with Code Review Expertise for AI Data Training Projects','Vanessa Matos','2026-03-31','2026-10-30','removed',1,0,0,0.000],
+  ['Vetto Inc',490868,'Go or Rust Senior Software Engineer with Code Review Expertise for AI Data Training Projects','Vanessa Matos','2026-03-31','2026-07-31','removed',1,0,0,0.000],
+  ['Vetto Inc',491846,'[Expert Crowd] - Technical Operator for LLM Evaluation Enhancement [Computer Control]','Vanessa Matos','2026-04-08','2026-05-29','closed',80,0,69,0.863],
+  ['Vetto Inc',492114,'[Expert Crowd] - Finance Domain Lead for AI Training Data Platform','Vanessa Matos','2026-04-10','2027-04-30','removed',10,0,0,0.000],
+  ['Vetto Inc',492115,'[Expert Crowd] - Coding Domain Lead for AI Training Data Platform','Vanessa Matos','2026-04-10','2027-04-30','removed',10,0,0,0.000],
+  ['Vetto Inc',492307,'[Expert Crowd] W1 Software Engineer for Coding Task Evaluation (LLM Training) [SWE Bench]','Jimmy Mitreski','2026-04-13','2026-05-29','pending',36,0,23,0.639],
+  ['Vetto Inc',492449,'[Expert Crowd] - Investment Consultant Expert to Review AI model [Financial Expert]','Jimmy Mitreski','2026-04-13','2026-06-30','closed',31,0,15,0.484],
+  ['Vetto Inc',492829,'[Expert Crowd] - Team Administrator','Jimmy Mitreski','2026-04-15','2026-09-30','removed',2,0,0,0.000],
+  ['Vetto Inc',494097,'[Expert Crowd] - AI Researchers for LLM Evaluation Enhancement [Computer Control]','Jimmy Mitreski','2026-04-24','2026-05-29','closed',12,0,9,0.750],
+  ['Vetto Inc',494627,'[Expert Crowd] - Technical Operator for LLM Evaluation Enhancement  W4 [Computer Control]','Vanessa Matos','2026-04-29','2026-06-30','closed',153,0,51,0.333],
+  ['Vetto Inc',494634,'[Expert Crowd] - Management Consultant for AI Educational Platform [Consulting]','Vanessa Matos','2026-04-29','2026-06-30','removed',30,0,0,0.000],
+  ['Vetto Inc',494662,'[Expert Crowd] Go experts for LLM training (Computer Control)','Jimmy Mitreski','2026-04-29','2026-05-29','removed',4,0,0,0.000],
+  ['Vetto Inc',495689,'[Expert Crowd] - Coding Domain Lead for AI Training Data Platform 2 [Coding Lead]','Vanessa Matos','2026-05-07','2026-08-31','closed',11,0,5,0.455],
+  ['Vetto Inc',495798,'[Expert Crowd] W3 - Software Engineer for LLM training [SWE Bench]','Jimmy Mitreski','2026-05-08','2026-06-30','draft',1,0,0,0.000],
+  ['Vetto Inc',495857,'[Expert Crowd] - Technical Operator for LLM Evaluation Enhancement  W5 [Computer Control]','Vanessa Matos','2026-05-08','2026-07-31','pending',167,0,11,0.066],
+  ['Vetto Inc',496363,'[Expert Crowd] H - Software Engineer for Coding Task Evaluation (LLM Training) [SWE Bench]','Jimmy Mitreski','2026-05-13','2026-06-30','closed',16,0,16,1.000],
+  ['Vetto Inc',496395,'[Expert Crowd] W6 - Technical Operator for LLM Evaluation Enhancement ','Jimmy Mitreski','2026-05-13','2026-07-31','removed',121,0,0,0.000],
+  ['Vetto Inc',496981,'[Expert Crowd] Tech Support Specialist for LLM Enhacements [Technical Support]','Sebastian Almeida','2026-05-18','2026-06-30','closed',5,0,5,1.000],
+  ['Vetto Inc',497946,'[Expert Crowd] - Electrical, Mechanical, or Materials Engineering for AI Task Design and Validation','Sebastian Almeida','2026-05-26','—','removed',3,0,0,0.000],
 ];
 
 const EXEC_DATA = [
-  ['Human Union Data, Inc.','New · 1 account · onboarding',958,29,8,0.039,'row-red','At Risk','badge-red'],
-  ['Scale AI','Enterprise · 1 sub-account',917,0,31,0.034,'row-red','At Risk','badge-red'],
-  ['Vetto Inc','SMB · 1 sub-account',694,0,204,0.294,'row-amb','Monitor','badge-amb'],
-  ['Patronus AI, Inc.','New · 1 account · onboarding',316,12,1,0.041,'row-red','At Risk','badge-red'],
-  ['Meridian AI','Enterprise · 2 sub-accounts',225,4,158,0.720,'row-grn','Healthy','badge-grn'],
+  ['Human Union Data, Inc.','New · 2 accounts (parent + Main) · onboarding',958,29,8,0.039,'row-red','At Risk','badge-red'],
+  ['Meridian AI','Enterprise · 3 sub-accounts',225,4,158,0.720,'row-grn','Healthy','badge-grn'],
+  ['Patronus AI, Inc.','New · 1 account · onboarding',354,15,0,0.042,'row-red','At Risk','badge-red'],
+  ['Scale AI','Enterprise · 11 sub-accounts',917,0,31,0.034,'row-red','At Risk','badge-red'],
+  ['Vetto Inc','SMB · 1 account',694,0,204,0.294,'row-amb','Monitor','badge-amb'],
 ];
 
 // ── Render operational rows ───────────────────────────────────────────────────

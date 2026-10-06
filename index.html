@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Expert Crowd — Fulfillment Status — October 7, 2026</title>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --red:      #C0392B; --red-bg:  #FDECEA; --red-str: #E53E3E;
+    --amb:      #B7490A; --amb-bg:  #FEF3E2; --amb-str: #DD6B20;
+    --grn:      #276749; --grn-bg:  #EBF7F0; --grn-str: #38A169;
+    --header:   #1A2238;
+    --header2:  #222D45;
+    --border:   #E2E8F0;
+    --muted:    #718096;
+    --text:     #1A202C;
+    --surface:  #FFFFFF;
+    --page:     #EEF1F7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--page); color: var(--text); font-size: 14px; line-height: 1.5;
+  }
+
+  /* ── Topbar ───────────────────────────────────────────────── */
+  .topbar {
+    background: var(--header); color: #fff;
+    padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.01em; }
+  .badge-ec {
+    background: #2D3E6E; border: 1px solid #4A5C8A; color: #90CAF9;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    padding: 3px 9px; border-radius: 4px; white-space: nowrap;
+  }
+  .topbar .meta { font-size: 12px; color: #A0AEC0; text-align: right; line-height: 1.8; }
+  .topbar .meta strong { color: #fff; }
+
+  /* ── Layout ───────────────────────────────────────────────── */
+  .page { max-width: 1200px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  /* ── Cards ────────────────────────────────────────────────── */
+  .cards { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 28px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .card .label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .card .value { font-size: 26px; font-weight: 700; }
+  .card .sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .card.c-rate .value { color: var(--amb); }
+
+  /* ── Section head ─────────────────────────────────────────── */
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .section-head-left { display: flex; align-items: center; gap: 10px; }
+  .section-head h2 { font-size: 14px; font-weight: 700; }
+  .pill {
+    font-size: 11px; font-weight: 600; background: #EDF2FF; color: #3B5BDB;
+    padding: 2px 9px; border-radius: 20px;
+  }
+
+  /* ── Table card ───────────────────────────────────────────── */
+  .card-table {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 10px;
+  }
+
+  /* ── Table base ───────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr.hdr-main { background: var(--header); }
+  thead th {
+    color: #94A3B8; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 11px 13px; text-align: left; white-space: nowrap;
+    user-select: none;
+  }
+  thead th.right  { text-align: right; }
+  thead th.center { text-align: center; }
+  thead th.accent-h { width: 5px; padding: 0; }
+
+  /* Sort icons */
+  th.sortable { cursor: pointer; }
+  th.sortable:hover { color: #fff; }
+  th.sortable::after { content: ' ⇅'; opacity: 0.4; font-size: 10px; }
+  th.sort-asc::after  { content: ' ↑'; opacity: 1; color: #63B3ED; }
+  th.sort-desc::after { content: ' ↓'; opacity: 1; color: #63B3ED; }
+
+  /* Filter row */
+  thead tr.hdr-filter { background: var(--header2); }
+  thead tr.hdr-filter th { padding: 5px 7px; }
+  .filter-input {
+    width: 100%; background: #1E2D4A; border: 1px solid #3A4D6A;
+    color: #CBD5E0; font-size: 11px; padding: 4px 6px; border-radius: 4px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .filter-input:focus { border-color: #63B3ED; }
+  .filter-input::placeholder { color: #4A6080; }
+  select.filter-input { cursor: pointer; }
+
+  /* Table rows */
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #F7FAFF !important; }
+
+  td { padding: 12px 13px; font-size: 13px; }
+  td.right  { text-align: right; font-variant-numeric: tabular-nums; }
+  td.center { text-align: center; }
+
+  td.accent { width: 5px; padding: 0; }
+  tr.row-red td.accent { background: var(--red-str); }
+  tr.row-amb td.accent { background: var(--amb-str); }
+  tr.row-grn td.accent { background: var(--grn-str); }
+
+  .client-name { font-weight: 600; }
+  .client-sub  { font-size: 11px; color: var(--muted); }
+
+  /* ── Rate bar cell ────────────────────────────────────────── */
+  td.rate-cell { padding: 0; min-width: 160px; }
+  .rate-wrap {
+    position: relative; padding: 12px 13px;
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  }
+  .rate-bar-track {
+    flex: 1; height: 6px; background: #EDF0F5; border-radius: 3px; overflow: hidden;
+    min-width: 60px; max-width: 100px;
+  }
+  .rate-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+  .rate-val { font-weight: 700; font-size: 13px; white-space: nowrap; min-width: 42px; text-align: right; }
+  tr.row-red .rate-bar-fill { background: var(--red-str); }
+  tr.row-amb .rate-bar-fill { background: var(--amb-str); }
+  tr.row-grn .rate-bar-fill { background: var(--grn-str); }
+  tr.row-red .rate-val { color: var(--red); }
+  tr.row-amb .rate-val { color: var(--amb); }
+  tr.row-grn .rate-val { color: var(--grn); }
+
+  /* ── Status badge ─────────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 11px; border-radius: 5px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+  .badge-red { background: var(--red-str); color: #fff; }
+  .badge-amb { background: var(--amb-str); color: #fff; }
+  .badge-grn { background: var(--grn-str); color: #fff; }
+
+  /* ── Total row ────────────────────────────────────────────── */
+  tr.total-row td { font-weight: 700; background: #F7FAFF; border-top: 2px solid var(--border); }
+  tr.total-row td.accent { background: var(--header); }
+
+  /* ── Executive table: center all columns ─────────────────── */
+  #execTable th   { text-align: center; }
+  #execTable td   { text-align: center; }
+  #execTable td:nth-child(2) { text-align: left; }   /* Client stays left */
+  #execTable .rate-wrap { justify-content: center; }
+
+  /* ── Legend ───────────────────────────────────────────────── */
+  .legend {
+    display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+    padding: 10px 4px 28px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .legend-note { font-size: 11px; color: var(--muted); margin-left: auto; font-style: italic; }
+
+  /* ── Operational table toolbar ───────────────────────────── */
+  .ops-toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 320px; }
+  .search-wrap input {
+    width: 100%; padding: 7px 10px 7px 32px;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 7px; font-size: 13px; outline: none; color: var(--text);
+    transition: border-color 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .search-wrap input:focus { border-color: #63B3ED; }
+  .search-wrap .search-icon {
+    position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); pointer-events: none; font-size: 14px;
+  }
+  .filter-select {
+    padding: 7px 10px; background: #fff; border: 1px solid var(--border);
+    border-radius: 7px; font-size: 13px; color: var(--text); cursor: pointer; outline: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .row-count { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  /* Download button */
+  .btn-download {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 16px; border-radius: 7px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 600; transition: all 0.15s;
+    background: #276749; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .btn-download:hover { background: #2F7A55; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+  .btn-download svg { flex-shrink: 0; }
+
+  /* ── Scrollable ops table ─────────────────────────────────── */
+  .ops-scroll {
+    max-height: 500px; overflow-y: auto; overflow-x: hidden;
+    border-radius: 0 0 10px 10px;
+  }
+  .ops-scroll table {
+    width: 100%; table-layout: fixed;
+  }
+  .ops-scroll thead th { position: sticky; top: 0; z-index: 2; }
+  .ops-scroll thead tr.hdr-filter th { position: sticky; top: 37px; z-index: 2; }
+
+  /* Ops table cell sizing: tighter padding, smaller font */
+  .ops-scroll td { padding: 10px 8px; font-size: 12px; overflow: hidden; }
+  .ops-scroll thead th { padding: 10px 8px; }
+
+  /* Dates and numbers: never wrap */
+  .ops-scroll .col-date  { white-space: nowrap; }
+  .ops-scroll .col-num   { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ops-scroll .col-trunc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Narrower rate bar for ops table */
+  .ops-scroll td.rate-cell { min-width: unset; padding: 0; }
+  .ops-scroll .rate-wrap   { padding: 10px 8px; gap: 6px; }
+  .ops-scroll .rate-bar-track { min-width: 28px; max-width: 52px; }
+  .ops-scroll .rate-val    { font-size: 12px; min-width: 38px; }
+
+  /* scrollbar styling */
+  .ops-scroll::-webkit-scrollbar { width: 7px; height: 7px; }
+  .ops-scroll::-webkit-scrollbar-track { background: #F0F2F7; }
+  .ops-scroll::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 4px; }
+  .ops-scroll::-webkit-scrollbar-thumb:hover { background: #A0AEC0; }
+
+  /* ── Job-specific ─────────────────────────────────────────── */
+  .job-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mono { font-family: "SF Mono","Fira Code",monospace; font-size: 11px; color: var(--muted); }
+  .tag {
+    display: inline-block; padding: 2px 6px; border-radius: 4px;
+    font-size: 10px; font-weight: 500; white-space: nowrap;
+  }
+  .tag.active  { background: #EBF7F0; color: #276749; }
+  .tag.closed  { background: #F0F0F0; color: #555; }
+  .tag.pending { background: #FEF3E2; color: #B7490A; }
+  .tag.expired { background: #FDE8E8; color: #9B1C1C; }
+  .tag.draft   { background: #F5F0FF; color: #6B46C1; }
+
+  /* no-results */
+  .no-results { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+
+  /* ── Client Breakdown accordion ──────────────────────────── */
+  .breakdown-client {
+    margin-bottom: 10px; border-radius: 10px;
+    border: 1px solid var(--border); overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .breakdown-header {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: #fff; border: none; cursor: pointer;
+    font-family: inherit; text-align: left; transition: background 0.15s;
+  }
+  .breakdown-header:hover { background: #F7F9FC; }
+  .breakdown-header.open  { background: #EEF2FA; }
+  .breakdown-chevron {
+    display: inline-block; margin-right: 10px; font-size: 11px;
+    transition: transform 0.2s; color: var(--muted);
+  }
+  .breakdown-header.open .breakdown-chevron { transform: rotate(90deg); }
+  .breakdown-header-left  { display: flex; align-items: center; }
+  .breakdown-header-right { display: flex; align-items: center; gap: 20px; }
+  .bd-stat { font-size: 12px; color: var(--muted); }
+  .bd-stat strong { color: var(--text); font-weight: 600; }
+  .breakdown-body { display: none; border-top: 1px solid var(--border); }
+  .bd-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .bd-table th {
+    background: #444D69; color: #fff; font-weight: 600;
+    padding: 8px 14px; text-align: left;
+  }
+  .bd-table th.r { text-align: right; }
+  .bd-table td { padding: 9px 14px; border-bottom: 1px solid #F0F2F7; color: var(--text); }
+  .bd-table tr:last-child td { border-bottom: none; }
+  .bd-table tr:nth-child(even) td { background: #FAFBFD; }
+  .bd-table td.r { text-align: right; font-variant-numeric: tabular-nums; }
+  .bd-job-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 480px; }
+
+  /* ── Footer ───────────────────────────────────────────────── */
+  .footer {
+    text-align: center; font-size: 11px; color: var(--muted);
+    padding-top: 14px; border-top: 1px solid var(--border); margin-top: 8px;
+  }
+  .footer strong { color: #4A5568; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="badge-ec">EXPERT CROWD</span>
+    <h1>Expert Crowd — Fulfillment Status</h1>
+  </div>
+  <div class="meta">
+    <div>Report date: <strong>October 7, 2026</strong></div>
+    <div>Source: CDR.Engagement × CDR.Company · BigQuery</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Summary cards -->
+  <div class="cards">
+    <div class="card"><div class="label">EC Clients</div><div class="value">6</div><div class="sub">Expert Crowd programme</div></div>
+    <div class="card"><div class="label">Total Sent</div><div class="value">3,989</div><div class="sub">All EC clients</div></div>
+    <div class="card"><div class="label">Currently Active</div><div class="value">122</div><div class="sub">EngagementStatus = active</div></div>
+    <div class="card"><div class="label">Offboarded</div><div class="value">453</div><div class="sub">EngagementStatus = closed</div></div>
+    <div class="card c-rate"><div class="label">Activation Rate</div><div class="value">14.4%</div><div class="sub">(Active + Off.) / Sent</div></div>
+  </div>
+
+  <!-- ── Executive View ── -->
+  <div class="section-head">
+    <div class="section-head-left">
+      <h2>Executive View</h2>
+      <span class="pill">By Client</span>
+    </div>
+  </div>
+
+  <div class="card-table">
+    <table id="execTable">
+      <thead>
+        <tr class="hdr-main">
+          <th class="accent-h"></th>
+          <th>Client</th>
+          <th>Total Sent</th>
+          <th>Active</th>
+          <th>Offboarded</th>
+          <th style="min-width:200px">Activation Rate</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-red">
+          <td class="accent"></td>
+          <td><span class="client-name">Human Union Data, Inc.</span><br><span class="client-sub">New · 1 account · onboarding</span></td>
+          <td>1,182</td><td>64</td><td>52</td>
+          <td class="rate-cell">
+            <div class="rate-wrap">
+              <div class="rate-bar-track"><div class="rate-bar-fill" style="width:9.8%"></div></div>
+              <span class="rate-val">9.8%</span>
+            </div>
+          </td>
+          <td><span class="badge badge-red">At Risk</span></td>
+        </tr>
+        <tr class="row-red">
+          <td class="accent"></td>
+          <td><span class="client-name">Scale AI</span><br><span class="client-sub">Enterprise · 1 sub-account</span></td>
+          <td>963</td><td>1</td><td>31</td>
+          <td class="rate-cell">
+            <div class="rate-wrap">
+              <div class="rate-bar-track"><div class="rate-bar-fill" style="width:3.3%"></div></div>
+              <span class="rate-val">3.3%</span>
+            </div>
+          </td>
+          <td><span class="badge badge-red">At Risk</span></td>
+        </tr>
+        <tr class="row-amb">
+          <td class="accent"></td>
+          <td><span class="client-name">Vetto Inc</span><br><span class="client-sub">SMB · 1 sub-account</span></td>
+          <td>816</td><td>10</td><td>204</td>
+          <td class="rate-cell">
+            <div class="rate-wrap">
+              <div class="rate-bar-track"><div class="rate-bar-fill" style="width:26.2%"></div></div>
+              <span class="rate-val">26.2%</span>
+            </div>
+          </td>
+          <td><span class="badge badge-amb">Monitor</span></td>
+        </tr>
+        <tr class="row-red">
+          <td class="accent"></td>
+          <td><span class="client-name">Patronus AI, Inc.</span><br><span class="client-sub">New · 1 account · onboarding</span></td>
+          <td>779</td><td>42</td><td>8</td>
+          <td class="rate-cell">
+            <div class="rate-wrap">
+              <div class="rate-bar-track"><div class="rate-bar-fill" style="width:6.4%"></div></div>
+              <span class="rate-val">6.4%</span>
+            </div>
+          </td>
+          <td><span class="badge badge-red">At Risk</span></td>
+        </tr>
+        <tr class="row-grn">
+          <td class="accent"></td>
+          <td><span class="client-name">Meridian AI</span><br><span class="client-sub">Enterprise · 2 sub-accounts</span></td>
+          <td>248</td><td>4</td><td>158</td>
+          <td class="rate-cell">
+            <div class="rate-wrap">
+              <div class="rate-bar-track"><div class="rate-bar-fill" style="width:65.3%"></div></div>
+              <span class="rate-val">65.3%</span>
+            </div>
+          </td>
+          <td><span class="badge badge-grn">Healthy</span></td>
+        </tr>
+        <tr class="row-grn">
+          <td class="accent"></td>
+          <td><span class="client-name">Askable PTY LTD</span><br><span class="client-sub">New · 1 account · onboarding</span></td>
+          <td>1</td><td>1</td><td>0</td>
+          <td class="rate-cell">
+            <div class="rate-wrap">
+              <div class="rate-bar-track"><div class="rate-bar-fill" style="width:100%"></div></div>
+              <span class="rate-val">100%</span>
+            </div>
+          </td>
+          <td><span class="badge badge-grn">Healthy</span></td>
+        </tr>
+        <tr class="total-row">
+          <td class="accent"></td>
+          <td><span class="client-name">Total</span></td>
+          <td>3,989</td><td>122</td><td>453</td>
+          <td class="rate-cell">
+            <div class="rate-wrap">
+              <div class="rate-bar-track"><div class="rate-bar-fill" style="width:14.4%;background:#718096"></div></div>
+              <span class="rate-val" style="color:var(--text)">14.4%</span>
+            </div>
+          </td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red-str)"></div>At Risk — Rate &lt; 20%</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amb-str)"></div>Monitor — Rate 20–40%</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--grn-str)"></div>Healthy — Rate &gt; 40%</div>
+    <span class="legend-note">Activation Rate = (Active + Offboarded) / Total Sent</span>
+  </div>
+
+  <!-- ── Client Breakdown ── -->
+  <div class="section-head" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="section-head-left">
+      <h2>Client Breakdown</h2>
+      <span class="pill">By Job · click to expand</span>
+    </div>
+    <button class="btn-download" onclick="downloadXLSX()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download Excel
+    </button>
+  </div>
+  <div id="breakdownWrap"></div>
+
+  <div class="footer" style="margin-top:28px">
+    <strong>Expert Crowd — Fulfillment Status</strong> ·
+    Generated October 7, 2026 ·
+    Source: <strong>CDR.Engagement × CDR.Company</strong> (BigQuery) ·
+    Next refresh: October 8, 2026
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const OPS_DATA = [
+  // [client, jobId, title, matcher, posted, estEnd, status, sent, active, off, rate]
+  ['Human Union Data, Inc.',503437,'[IJ - Expert Crowd] - Software Engineering Bench [SWE Bench]','Internal','2026-07-21','2026-09-30','pending_engineer',201,29,31,0.299],
+  ['Human Union Data, Inc.',503610,'[IJ - Expert Crowd] - Management Consultants [MC Bench]','Internal','2026-07-23','2026-09-30','pending_engineer',54,35,14,0.907],
+  ['Human Union Data, Inc.',501973,'[IJ] Software Engineering Domain Lead — AI Benchmark Project','Internal','2026-07-06','2026-07-31','closed',2,0,1,0.500],
+  ['Human Union Data, Inc.',500005,'[Expert Crowd] Management Consultant — AI Evaluator & Task Designer W1','Sebastian Almeida','2026-06-15','2026-08-31','closed',12,0,6,0.500],
+  ['Meridian AI',505708,'[Expert Crowd] STEM chart analyst for AI model training','Jimmy Mitreski','2026-08-20','2026-11-30','pending',49,0,0,0.000],
+  ['Meridian AI',480174,'[Expert Crowd] - Financial Model and Prompt Creator with Spreadsheet Expertise','Vanessa Matos','2026-01-12','—','closed',44,0,40,0.909],
+  ['Meridian AI',484364,'[Expert Crowd] - W3 Financial Model and Prompt Creator with Spreadsheet Expertise','Vanessa Matos','2026-02-10','—','closed',38,0,33,0.868],
+  ['Meridian AI',475194,'[Expert Crowd] - Spreadsheet Creator for Financial Modeling AI Tool','Vanessa Matos','2025-11-26','—','closed',31,0,31,1.000],
+  ['Meridian AI',479577,'Spreadsheet Sanitizer for Financial Modeling AI Tool','Vanessa Matos','2026-01-07','—','closed',29,0,29,1.000],
+  ['Meridian AI',481644,'Spreadsheet Editor for Financial Modeling AI','Vanessa Matos','2026-01-21','—','closed',12,0,12,1.000],
+  ['Meridian AI',474041,'[Expert Crowd] - Reviewer for Excel-Based Financial Models AI Training project','Vanessa Matos','2025-11-18','2026-07-31','closed',8,0,6,0.750],
+  ['Meridian AI',494767,'[Expert Crowd] - Reviewer for Financial Models AI Training W2','Vanessa Matos','2026-04-30','2026-11-30','active',4,4,0,1.000],
+  ['Meridian AI',504665,'[Expert Crowd] - Reviewer for Financial Models AI Training W3','Sebastian Almeida','2026-08-05','—','closed',3,0,3,1.000],
+  ['Patronus AI, Inc.',505006,'[Expert Crowd] - Senior Accountant with Financial Reporting Experience','Sebastian Almeida','2026-08-10','2026-09-11','active',218,10,7,0.078],
+  ['Patronus AI, Inc.',506750,'[Expert Crowd] Sr Cap Table SME – AI Model Training','Sebastian Almeida','2026-09-02','2026-10-30','pending',80,2,0,0.025],
+  ['Patronus AI, Inc.',505015,'[Expert Crowd] - External Audit Professionals for Financial Statement Audits','Sebastian Almeida','2026-08-10','2026-09-11','pending',79,10,0,0.127],
+  ['Patronus AI, Inc.',506918,'[Expert Crowd] Sr Design SME – AI Model Training','Sebastian Almeida','2026-09-03','2026-10-30','pending',74,5,0,0.068],
+  ['Patronus AI, Inc.',508703,'[Expert Crowd] - Senior Trading SME','Sebastian Almeida','2026-09-28','2026-10-30','pending_engineer',61,0,0,0.000],
+  ['Patronus AI, Inc.',505009,'[Expert Crowd] - Operations & Research Staff for Capital Markets','Sebastian Almeida','2026-08-10','2026-09-11','pending',42,9,1,0.238],
+  ['Patronus AI, Inc.',509108,'Revenue Operations Analyst','Ronaldo Vasconcellos','2026-10-02','2026-12-31','pending',42,0,0,0.000],
+  ['Patronus AI, Inc.',509129,'Sales Compensation / Commissions Analyst','Pablo C. Garcia','2026-10-02','2026-11-13','pending',27,0,0,0.000],
+  ['Patronus AI, Inc.',506899,'[Expert Crowd] Sr Equity Research SME – AI Model Training','Sebastian Almeida','2026-09-03','2026-10-30','pending_engineer',15,0,0,0.000],
+  ['Patronus AI, Inc.',505971,'[Expert Crowd] SAP Concur Expense expert for financial AI model training','Jimmy Mitreski','2026-08-24','2026-10-31','active',13,6,0,0.462],
+  ['Patronus AI, Inc.',509134,'Customer Success Operations Analyst','Pablo C. Garcia','2026-10-03','2026-11-20','pending',11,0,0,0.000],
+  ['Patronus AI, Inc.',506027,'[Expert Crowd] Sr Commercial Contracts SME – AI Model Training','Jimmy Mitreski','2026-08-24','2026-10-31','pending',5,0,0,0.000],
+  ['Patronus AI, Inc.',507788,'[Expert Crowd] Orion AdvisorTech (Portfolio Accounting & Advisor Portfolio) SME – AI Model Training','Sebastian Almeida','2026-09-16','2026-11-20','pending_engineer',3,0,0,0.000],
+  ['Patronus AI, Inc.',509209,'FP&A Analyst (Card or Consumer Lending)','Damir Ferovic','2026-10-05','2026-11-13','pending',7,0,0,0.000],
+  ['Patronus AI, Inc.',509200,'AML/BSA Investigator','Damir Ferovic','2026-10-05','2026-11-13','pending',3,0,0,0.000],
+  ['Patronus AI, Inc.',509212,'Card Disputes / Chargeback Analyst (Issuer Side)','Damir Ferovic','2026-10-05','2026-11-13','pending',1,0,0,0.000],
+  ['Scale AI',496064,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 2 - W3','Vanessa Matos','2026-05-11','—','closed',440,0,14,0.032],
+  ['Scale AI',496013,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 1 - W3','Vanessa Matos','2026-05-11','—','closed',225,0,8,0.036],
+  ['Scale AI',495215,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 2','Jimmy Mitreski','2026-05-04','2026-07-31','closed',176,0,8,0.045],
+  ['Scale AI',505095,'[Expert Crowd] Personal Finance consultants for AI model','Jimmy Mitreski','2026-08-11','2026-09-30','pending',64,1,0,0.016],
+  ['Scale AI',503184,'[Expert Crowd] - Software devs for LLM Training (Open Claw) Tier 1 - W3','Sebastian Almeida','2026-07-17','2026-07-31','closed',1,0,1,1.000],
+  ['Vetto Inc',495857,'[Expert Crowd] - Technical Operator for LLM Evaluation Enhancement W5','Vanessa Matos','2026-05-08','2026-07-31','pending',167,0,11,0.066],
+  ['Vetto Inc',494627,'[Expert Crowd] - Technical Operator for LLM Evaluation Enhancement W4','Vanessa Matos','2026-04-29','2026-06-30','closed',153,0,51,0.333],
+  ['Vetto Inc',491846,'[Expert Crowd] - Technical Operator for LLM Evaluation Enhancement','Vanessa Matos','2026-04-08','2026-05-29','closed',80,0,69,0.863],
+  ['Vetto Inc',508404,'[Expert Crowd] Recorder - Videos for Data Collection Project, AI training','Jimmy Mitreski','2026-09-23','2026-11-30','pending',52,0,0,0.000],
+  ['Vetto Inc',509005,'Senior Software Engineers for AI training','Jimmy Mitreski','2026-10-01','2026-12-31','pending',21,0,0,0.000],
+  ['Vetto Inc',492307,'[Expert Crowd] W1 Software Engineer for Coding Task Evaluation (LLM Training)','Jimmy Mitreski','2026-04-13','2026-05-29','pending',36,0,23,0.639],
+  ['Vetto Inc',492449,'[Expert Crowd] - Investment Consultant Expert to Review AI model','Jimmy Mitreski','2026-04-13','2026-06-30','closed',31,0,15,0.484],
+  ['Vetto Inc',508419,'[Expert Crowd] Narrator - Videos for Data Collection Project, AI training','Jimmy Mitreski','2026-09-23','2026-11-30','pending',25,6,0,0.240],
+  ['Vetto Inc',496363,'[Expert Crowd] H - Software Engineer for Coding Task Evaluation (LLM Training)','Jimmy Mitreski','2026-05-13','2026-06-30','closed',16,0,16,1.000],
+  ['Vetto Inc',494097,'[Expert Crowd] - AI Researchers for LLM Evaluation Enhancement','Jimmy Mitreski','2026-04-24','2026-05-29','closed',12,0,9,0.750],
+  ['Vetto Inc',495689,'[Expert Crowd] - Coding Domain Lead for AI Training Data Platform 2','Vanessa Matos','2026-05-07','2026-08-31','closed',11,0,5,0.455],
+  ['Vetto Inc',508051,'[Expert Crowd] EdgeBench Annotator (Rust) for AI training','Jimmy Mitreski','2026-09-18','2026-11-30','pending',10,4,0,0.400],
+  ['Vetto Inc',508800,'Math experts for AI model training','Jimmy Mitreski','2026-09-29','2026-11-30','pending',7,0,0,0.000],
+  ['Vetto Inc',508526,'[Expert Crowd] Annotators (Computer Control 2) for LLM training','Jimmy Mitreski','2026-09-24','2026-11-30','pending',7,0,0,0.000],
+  ['Vetto Inc',496981,'[Expert Crowd] Tech Support Specialist for LLM Enhacements','Sebastian Almeida','2026-05-18','2026-06-30','closed',5,0,5,1.000],
+  ['Vetto Inc',495798,'[Expert Crowd] W3 - Software Engineer for LLM training','Jimmy Mitreski','2026-05-08','2026-06-30','draft',1,0,0,0.000],
+  ['Askable PTY LTD',509020,'Senior Software Engineer: build one AI coding evaluation task','Vanessa Matos','2026-10-01','2026-12-31','active',1,1,0,1.000],
+];
+
+const EXEC_DATA = [
+  ['Human Union Data, Inc.','New · 1 account · onboarding',1182,64,52,0.098,'row-red','At Risk','badge-red'],
+  ['Scale AI','Enterprise · 1 sub-account',963,1,31,0.033,'row-red','At Risk','badge-red'],
+  ['Vetto Inc','SMB · 1 sub-account',816,10,204,0.262,'row-amb','Monitor','badge-amb'],
+  ['Patronus AI, Inc.','New · 1 account · onboarding',779,42,8,0.064,'row-red','At Risk','badge-red'],
+  ['Meridian AI','Enterprise · 2 sub-accounts',248,4,158,0.653,'row-grn','Healthy','badge-grn'],
+  ['Askable PTY LTD','New · 1 account · onboarding',1,1,0,1.000,'row-grn','Healthy','badge-grn'],
+];
+
+// ── Client Breakdown ─────────────────────────────────────────────────────────
+const STATUS_LABELS = {
+  'active':           'Active',
+  'closed':           'Closed',
+  'pending':          'Pending',
+  'pending_engineer': 'Pending (Eng.)',
+  'pending_expiration':'Expiring',
+  'pending_approval': 'Pending Approval',
+  'pending_start':    'Pending Start',
+  'end_scheduled':    'End Scheduled',
+  'draft':            'Draft'
+};
+
+function bdStatusTag(s) {
+  const cls = s === 'active' ? 'active' : s === 'closed' ? 'closed' :
+              s === 'pending_expiration' ? 'expired' : s === 'draft' ? 'draft' :
+              s.startsWith('pending') ? 'pending' : 'pending';
+  return `<span class="tag ${cls}">${STATUS_LABELS[s] || s}</span>`;
+}
+
+function buildBreakdown() {
+  const clientOrder = EXEC_DATA.map(d => d[0]);
+  const groups = {};
+  OPS_DATA.forEach(d => {
+    if (!groups[d[0]]) groups[d[0]] = [];
+    groups[d[0]].push(d);
+  });
+
+  document.getElementById('breakdownWrap').innerHTML = clientOrder.map(name => {
+    const jobs = groups[name] || [];
+    const totalSent   = jobs.reduce((s, d) => s + d[7], 0);
+    const totalHired  = jobs.reduce((s, d) => s + d[8] + d[9], 0);
+
+    const rows = jobs.map(d => {
+      const hired = d[8] + d[9];
+      return `<tr>
+        <td><div class="bd-job-title" title="${d[2]}">${d[2]}</div></td>
+        <td>${bdStatusTag(d[6])}</td>
+        <td class="r">${d[7].toLocaleString()}</td>
+        <td class="r">${hired}</td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="breakdown-client">
+      <button class="breakdown-header" onclick="toggleBreakdown(this)">
+        <div class="breakdown-header-left">
+          <span class="breakdown-chevron">▶</span>
+          <span style="font-size:14px;font-weight:700;color:var(--text)">${name}</span>
+        </div>
+        <div class="breakdown-header-right">
+          <span class="bd-stat">${jobs.length} job${jobs.length !== 1 ? 's' : ''}</span>
+          <span class="bd-stat">Sent: <strong>${totalSent.toLocaleString()}</strong></span>
+          <span class="bd-stat">Hired: <strong>${totalHired}</strong></span>
+        </div>
+      </button>
+      <div class="breakdown-body">
+        <table class="bd-table">
+          <thead>
+            <tr>
+              <th>Job Title</th>
+              <th>Status</th>
+              <th class="r">Total Sent</th>
+              <th class="r">Hired / Accepted</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleBreakdown(btn) {
+  const body = btn.nextElementSibling;
+  const isOpen = body.style.display === 'block';
+  body.style.display = isOpen ? 'none' : 'block';
+  btn.classList.toggle('open', !isOpen);
+}
+
+buildBreakdown();
+
+// ── Download Excel ────────────────────────────────────────────────────────────
+function downloadXLSX() {
+  const wb = XLSX.utils.book_new();
+
+  // Tab 1 — Executive
+  const execRows = [
+    ['Client','Total Sent','Active','Offboarded','Activation Rate','Status'],
+    ...EXEC_DATA.map(d => [d[0], d[2], d[3], d[4], (d[5]*100).toFixed(1)+'%', d[7]]),
+    ['TOTAL', 3989, 122, 453, '14.4%', ''],
+  ];
+  const ws1 = XLSX.utils.aoa_to_sheet(execRows);
+  ws1['!cols'] = [{wch:20},{wch:12},{wch:10},{wch:12},{wch:16},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Executive View');
+
+  // Tab 2 — Breakdown by Job
+  const opsRows = [
+    ['Client','Job ID','Job Title','Matcher','Posted','Est. End','Status','Total Sent','Active','Offboarded','Hired / Accepted'],
+    ...OPS_DATA.map(d => [d[0], d[1], d[2], d[3], d[4], d[5], STATUS_LABELS[d[6]] || d[6], d[7], d[8], d[9], d[8]+d[9]]),
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(opsRows);
+  ws2['!cols'] = [{wch:20},{wch:10},{wch:55},{wch:20},{wch:12},{wch:12},{wch:20},{wch:10},{wch:8},{wch:12},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Breakdown — By Job');
+
+  XLSX.writeFile(wb, 'ec-talent-activation-report-2026-10-07.xlsx');
+}
+</script>
+</body>
+</html>

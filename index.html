@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EC Matching Operations</title>
+<style>
+:root{
+  --header:#1B2432;--page:#F0F2F7;--surface:#FFFFFF;
+  --border:#E2E8F0;--muted:#718096;--text:#1A202C;--text2:#4A5568;
+  --accent:#2C5FD3;
+  --c-teal:#0D9488;--c-teal-lt:#E6F7F5;
+  --c-blue:#2C5FD3;--c-blue-lt:#EEF3FD;
+  --c-slate:#3C4A5C;--c-slate-lt:#F1F3F6;
+  --c-ora:#C05621;--c-ora-lt:#FFF2E8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--page);color:var(--text);font-size:14px;line-height:1.5}
+
+.topbar{background:var(--header);color:#fff;padding:18px 32px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.topbar h1{font-size:20px;font-weight:700;letter-spacing:.01em}
+.badge{background:#2C4080;border:1px solid #4A5C9A;color:#93C5FD;font-size:10px;font-weight:700;letter-spacing:.1em;padding:3px 9px;border-radius:4px;text-transform:uppercase}
+
+.page{max-width:1400px;margin:0 auto;padding:24px 28px 60px}
+.section{margin-bottom:32px}
+.section h2{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+
+/* ── KPI tile groups (top section) ──────────────────────────────────── */
+.tiles-row{display:flex;flex-direction:column;gap:10px}
+.tiles-group{display:grid;gap:10px;border-radius:8px;padding:12px;border-left:4px solid;background:#FFFFFF;border:1px solid var(--border);border-left-width:4px}
+.tiles-group.tg-volume{grid-template-columns:repeat(6,1fr);border-left-color:var(--c-teal)}
+.tiles-group.tg-sr    {grid-template-columns:repeat(4,1fr);border-left-color:var(--c-blue)}
+.tiles-group.tg-sla   {grid-template-columns:repeat(3,1fr);border-left-color:var(--c-slate)}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.tile-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+.tile-val{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--text)}
+.tg-volume .tile-val{color:var(--c-teal)}
+.tg-sr   .tile-val{color:var(--c-blue)}
+.tg-sla  .tile-val{color:var(--c-slate)}
+.tile-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ── Client cards ────────────────────────────────────────────────────── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card-hdr{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--border);background:var(--header)}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.3)}
+.card-name{font-size:13px;font-weight:700;flex:1;color:#fff}
+.card-tag{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;white-space:nowrap;background:#2D3E6E;color:#90CAF9;margin-left:4px}
+
+/* ── KPI bands in cards ──────────────────────────────────────────────── */
+.kpi-band{display:grid;border-bottom:1px solid var(--border);background:#fff}
+.kpi-band.kb-outcome{grid-template-columns:repeat(2,1fr);border-left:3px solid var(--c-ora)}
+.kpi-band.kb-volume {grid-template-columns:repeat(3,1fr);border-left:3px solid var(--c-teal)}
+.kpi-band.kb-sr     {grid-template-columns:repeat(3,1fr);border-left:3px solid var(--c-blue)}
+.kpi-band.kb-sr-pip {grid-template-columns:1fr;border-left:3px solid var(--c-blue)}
+.kpi{padding:10px 14px;border-right:1px solid rgba(0,0,0,.06);overflow:hidden}.kpi:last-child{border-right:none}
+.kpi-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:3px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-val{font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.kb-outcome .kpi-val{color:var(--c-ora)}
+.kb-volume  .kpi-val{color:var(--c-teal)}
+.kb-sr .kpi-val,.kb-sr-pip .kpi-val{color:var(--c-blue)}
+.fill-bar{padding:9px 16px;border-bottom:1px solid var(--border)}
+.fill-bar-row{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.track{background:var(--border);border-radius:2px;height:5px;overflow:hidden}
+.fill{height:100%;border-radius:2px}
+.sla-band{display:grid;grid-template-columns:repeat(3,1fr);padding:10px 16px;gap:6px;background:#fff;border-left:3px solid var(--c-slate)}
+.sla-item .sla-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sla-item .sla-val{font-size:13px;font-weight:800;color:var(--c-slate)}
+.sla-item .sla-desc{font-size:9px;color:var(--muted);margin-top:1px}
+
+/* ── Table ───────────────────────────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);box-shadow:0 1px 2px rgba(0,0,0,.04)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:var(--header)}
+th{color:#94A3B8;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:10px 13px;text-align:left;white-space:nowrap}
+th.r{text-align:right}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:last-child{border-bottom:none}
+td{padding:9px 13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.r{text-align:right}
+.cd{display:flex;align-items:center;gap:7px}
+.dot2{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+tr.tot td{font-weight:700;background:var(--page)}
+tr.client-row{cursor:pointer}
+tr.client-row:hover td{background:#F0F5FF}
+.chv{display:inline-block;width:12px;font-size:10px;color:var(--muted);transition:transform .15s}
+.chv.open{transform:rotate(90deg)}
+.job-row td{background:#F8FAFF;font-size:11px;padding:6px 13px 6px 32px}
+.job-row td.r{text-align:right}
+.job-row:hover td{background:#EDF2FF}
+.job-row td:first-child{border-left:3px solid var(--border)}
+.job-link{color:var(--accent);text-decoration:none;font-family:monospace;font-size:10px}
+.job-link:hover{text-decoration:underline}
+.st{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:3px;white-space:nowrap}
+.st-active{background:#DEF7EC;color:#065F46}
+.st-pending,.st-pending_engineer{background:#FEF3C7;color:#92400E}
+.st-closed{background:#E5E7EB;color:#374151}
+.st-removed,.st-end_scheduled{background:#FEE2E2;color:#991B1B}
+.st-draft,.st-drafted_by_sales{background:#F3F4F6;color:#6B7280}
+.st-internal{background:#DDD6FE;color:#4C1D95}
+
+/* ── Charts ──────────────────────────────────────────────────────────── */
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 24px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.chart-ttl{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.chart-sub{font-size:11px;color:var(--muted);margin-bottom:20px}
+#tt{position:fixed;background:var(--header);color:#fff;border-radius:6px;padding:10px 14px;font-size:12px;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.25);z-index:999;display:none;min-width:180px}
+#tt-ttl{font-weight:700;margin-bottom:4px}
+.tt-r{color:#A0AEC0;line-height:1.6}
+.tt-r b{color:#fff}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>EC Matching Operations</h1>
+  <span class="badge">Expert Crowd</span>
+</div>
+
+<div class="page">
+
+<!-- 1. Macro KPIs -->
+<div class="section">
+  <h2>Overall Metrics</h2>
+  <div class="tiles-row">
+    <div class="tiles-group tg-volume">
+      <div class="tile"><div class="tile-lbl">Active Requests</div><div class="tile-val">39</div><div class="tile-sub">Jobs in active / pending status</div></div>
+      <div class="tile"><div class="tile-lbl">Total Requests</div><div class="tile-val">97</div><div class="tile-sub">All EC jobs ever opened</div></div>
+      <div class="tile"><div class="tile-lbl">Talent Target</div><div class="tile-val">4,175</div><div class="tile-sub">Total hires requested</div></div>
+      <div class="tile"><div class="tile-lbl">Talents Sent</div><div class="tile-val">4,234</div><div class="tile-sub">101% of target</div></div>
+      <div class="tile"><div class="tile-lbl">AR Sent</div><div class="tile-val">15,979</div><div class="tile-sub">Availability requests</div></div>
+      <div class="tile"><div class="tile-lbl">Activated Talents</div><div class="tile-val">611</div><div class="tile-sub">Active + past engagements</div></div>
+    </div>
+    <div class="tiles-group tg-sr">
+      <div class="tile"><div class="tile-lbl">SR Total (ever opened)</div><div class="tile-val">21</div><div class="tile-sub">Sourcing requests created</div></div>
+      <div class="tile"><div class="tile-lbl">SR Open</div><div class="tile-val">12</div><div class="tile-sub">Currently active_sourcing</div></div>
+      <div class="tile"><div class="tile-lbl">SR Talents Active</div><div class="tile-val">644</div><div class="tile-sub">Linked &amp; active (all-time peak)</div></div>
+      <div class="tile"><div class="tile-lbl">SR Talents Pipeline</div><div class="tile-val">1,079</div><div class="tile-sub">Ever linked via SR</div></div>
+    </div>
+    <div class="tiles-group tg-sla">
+      <div class="tile"><div class="tile-lbl">Claimed → First AR</div><div class="tile-val">0.1h</div><div class="tile-sub">Median &nbsp;·&nbsp; avg 11.8h</div></div>
+      <div class="tile"><div class="tile-lbl">Claimed → First Sent</div><div class="tile-val">0.8d</div><div class="tile-sub">Median &nbsp;·&nbsp; avg 2.4d</div></div>
+      <div class="tile"><div class="tile-lbl">First Sent → First Hired</div><div class="tile-val">4.5d</div><div class="tile-sub">Median &nbsp;·&nbsp; avg 10.2d</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. By Client -->
+<div class="section">
+  <h2>By Client</h2>
+  <div class="card-grid" id="card-grid"></div>
+</div>
+
+<!-- 3. Charts -->
+<div class="section">
+  <h2>Request Timeline</h2>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="chart-box">
+      <div class="chart-ttl"># Talents &amp; # Requests per Week</div>
+      <div class="chart-sub">Bars = <strong># Talents</strong> (CDR target) &nbsp;·&nbsp; <span style="color:#C05621;font-weight:600">● = # Requests</span> — CDR job count for Jun 15–Aug 3, NTR Slack from Aug 10 onward</div>
+      <svg id="sv-bar" style="width:100%;overflow:visible;display:block"></svg>
+    </div>
+    <div class="chart-box">
+      <div class="chart-ttl">Request Time of Day</div>
+      <div class="chart-sub">Each dot = 1 NTR Slack request &nbsp;·&nbsp; X = week &nbsp;·&nbsp; Y = hour (EST, UTC−5) &nbsp;·&nbsp; hover for details</div>
+      <svg id="sv-sc" style="width:100%;overflow:visible;display:block"></svg>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Full Metrics Table -->
+<div class="section">
+  <h2>Full Metrics Table &nbsp;<span style="font-size:10px;font-weight:400;color:var(--muted)">— click a client row to expand individual jobs</span></h2>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="min-width:180px">Client / Job</th>
+          <th class="r">Active</th><th class="r">Total</th>
+          <th class="r">Target</th><th class="r">Sent</th><th class="r">Fill%</th>
+          <th class="r">AR Sent</th>
+          <th class="r">SR Total</th><th class="r">SR Open</th>
+          <th class="r">SR Tal. Active</th><th class="r">SR Pipeline</th>
+          <th class="r">NTR</th>
+          <th class="r">Claimed→AR</th><th class="r">Claimed→Sent</th><th class="r">Sent→Hired</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /.page -->
+
+<div id="tt"><div id="tt-ttl"></div><div class="tt-r" id="tt-r1"></div><div class="tt-r" id="tt-r2"></div></div>
+
+<script>
+// ── Clients (EC delivery model, BQ-verified) ───────────────────────────────
+const CLIENTS = [
+  {id:'scale',    name:'Scale AI',             hex:'#2a78d6',
+   activeJobs:2, totalJobs:11, target:783,  sent:972,  ar:5667,  activated:34,
+   srTotal:1,  srOpen:0, srTA:86,  srTP:118, ntr:3,  sla1:'0.3h',sla2:'0.3d',sla3:'11.0d'},
+  {id:'vetto',    name:'Vetto Inc',             hex:'#007a00',
+   activeJobs:9, totalJobs:28, target:891,  sent:863,  ar:3578,  activated:241,
+   srTotal:0,  srOpen:0, srTA:0,   srTP:0,   ntr:7,  sla1:'0.1h',sla2:'1.0d',sla3:'5.0d'},
+  {id:'patronus', name:'Patronus AI Inc.',      hex:'#b83d67',
+   activeJobs:24,totalJobs:26, target:1110, sent:921,  ar:3417,  activated:50,
+   srTotal:18, srOpen:11,srTA:458, srTP:810, ntr:26, sla1:'0.2h',sla2:'1.8d',sla3:'13.1d'},
+  {id:'meridian', name:'Meridian AI',           hex:'#a06e00',
+   activeJobs:2, totalJobs:13, target:298,  sent:290,  ar:738,   activated:164,
+   srTotal:2,  srOpen:1, srTA:100, srTP:151, ntr:1,  sla1:'1.3h',sla2:'0.1d',sla3:'0.2d'},
+  {id:'hud',      name:'Human Union Data Inc.',hex:'#0b7a56',
+   activeJobs:2, totalJobs:17, target:1082, sent:1187, ar:2537,  activated:121,
+   srTotal:0,  srOpen:0, srTA:0,   srTP:0,   ntr:13, sla1:'0.0h',sla2:'0.7d',sla3:'8.5d'},
+  {id:'askable',  name:'Askable PTY LTD',       hex:'#b84b15',
+   activeJobs:0, totalJobs:2,  target:11,   sent:1,    ar:42,    activated:1,
+   srTotal:0,  srOpen:0, srTA:0,   srTP:0,   ntr:0,  sla1:'—',   sla2:'0.0d',sla3:'4.5d'},
+];
+
+// ── Per-client jobs ────────────────────────────────────────────────────────
+const JOBS = {
+  scale: [
+    {id:494688, title:'[EC] Full Stack SWE for AI Training T1 [RFP]',        status:'removed', target:50,  claimed:'2026-04-29', ar:136,  sent:51},
+    {id:494691, title:'[EC] Full Stack SWE for AI Training T2 [RFP]',        status:'removed', target:1,   claimed:'2026-04-29', ar:0,    sent:0},
+    {id:494817, title:'[EC] SWE – OpenClaw T1',                               status:'removed', target:200, claimed:'2026-04-30', ar:136,  sent:51},
+    {id:495215, title:'[EC] SWE – OpenClaw T2',                               status:'closed',  target:8,   claimed:'2026-05-04', ar:614,  sent:176},
+    {id:496013, title:'[EC] SWE – OpenClaw T1 W3',                            status:'closed',  target:8,   claimed:'2026-05-11', ar:1611, sent:225},
+    {id:496064, title:'[EC] SWE – OpenClaw T2 W3',                            status:'closed',  target:14,  claimed:'2026-05-11', ar:2137, sent:440},
+    {id:497313, title:'[EC] SWE – OpenClaw T2 W5',                            status:'removed', target:200, claimed:'2026-05-20', ar:0,    sent:0},
+    {id:497312, title:'[EC] SWE – OpenClaw T1 W5',                            status:'removed', target:200, claimed:'2026-05-21', ar:0,    sent:0},
+    {id:503184, title:'[EC] SWE – OpenClaw T1 W3 (repeat)',                   status:'closed',  target:1,   claimed:'2026-07-17', ar:0,    sent:1},
+    {id:505095, title:'[EC] Personal Finance consultants for AI model',        status:'pending', target:100, claimed:'2026-08-11', ar:510,  sent:72},
+    {id:509675, title:'[EC] AI Agent Evaluation Engineer',                    status:'active',  target:1,   claimed:'2026-10-12', ar:0,    sent:1},
+  ],
+  vetto: [
+    {id:490861, title:'[EC] Python SWE with Code Review Expertise for AI Training',                status:'removed', target:1,   claimed:'2026-03-31', ar:0,   sent:0},
+    {id:490865, title:'[EC] JS/TS SWE with Code Review Expertise for AI Training',                status:'removed', target:1,   claimed:'2026-03-31', ar:0,   sent:0},
+    {id:490868, title:'[EC] Go or Rust SWE with Code Review Expertise for AI Training',           status:'removed', target:1,   claimed:'2026-03-31', ar:0,   sent:0},
+    {id:491846, title:'[EC] Technical Operator LLM [Computer Control]',                           status:'closed',  target:69,  claimed:'2026-04-08', ar:324, sent:80},
+    {id:492114, title:'[EC] Finance Domain Lead for AI Training Data Platform',                    status:'removed', target:5,   claimed:'2026-04-10', ar:0,   sent:0},
+    {id:492115, title:'[EC] Coding Domain Lead for AI Training Data Platform',                     status:'removed', target:5,   claimed:'2026-04-10', ar:0,   sent:0},
+    {id:492307, title:'[EC] W1 SWE Coding Evaluation [SWE Bench]',                                status:'pending', target:30,  claimed:'2026-04-13', ar:125, sent:36},
+    {id:492449, title:'[EC] Investment Consultant for AI [Financial Expert]',                      status:'closed',  target:15,  claimed:'2026-04-13', ar:116, sent:31},
+    {id:492829, title:'[EC] Team Administrator',                                                   status:'removed', target:3,   claimed:'2026-04-15', ar:0,   sent:0},
+    {id:494097, title:'[EC] AI Researchers LLM [Computer Control]',                               status:'closed',  target:9,   claimed:'2026-04-24', ar:48,  sent:12},
+    {id:494627, title:'[EC] Technical Operator W4 [Computer Control]',                            status:'closed',  target:51,  claimed:'2026-04-29', ar:10,  sent:153},
+    {id:494634, title:'[EC] Management Consultant [Consulting]',                                  status:'removed', target:30,  claimed:'2026-04-29', ar:163, sent:30},
+    {id:494662, title:'[EC] Go experts for LLM training (Computer Control)',                       status:'removed', target:10,  claimed:'2026-04-29', ar:0,   sent:0},
+    {id:495689, title:'[EC] Coding Domain Lead 2',                                                 status:'closed',  target:5,   claimed:'2026-05-07', ar:50,  sent:11},
+    {id:495798, title:'[EC] W3 – SWE for LLM training [SWE Bench]',                              status:'draft',   target:50,  claimed:'2026-05-08', ar:0,   sent:0},
+    {id:495857, title:'[EC] Technical Operator W5 [Computer Control]',                            status:'pending', target:100, claimed:'2026-05-08', ar:554, sent:167},
+    {id:496363, title:'[EC] H SWE [SWE Bench]',                                                   status:'closed',  target:20,  claimed:'2026-05-13', ar:0,   sent:16},
+    {id:496395, title:'[EC] W6 Technical Operator',                                               status:'removed', target:100, claimed:'2026-05-13', ar:111, sent:121},
+    {id:496981, title:'[EC] Tech Support Specialist',                                             status:'closed',  target:5,   claimed:'2026-05-18', ar:3,   sent:5},
+    {id:497946, title:'[EC] Elec/Mech/Materials Eng for AI Task Design',                         status:'removed', target:3,   claimed:'2026-05-26', ar:66,  sent:3},
+    {id:508051, title:'[EC] EdgeBench Annotator (Rust)',                                          status:'pending', target:10,  claimed:'2026-09-18', ar:56,  sent:10},
+    {id:508404, title:'[EC] Recorder – Videos for Data Collection',                              status:'pending', target:40,  claimed:'2026-09-23', ar:276, sent:52},
+    {id:508419, title:'[EC] Narrator – Videos for Data Collection',                              status:'pending', target:20,  claimed:'2026-09-23', ar:234, sent:25},
+    {id:508526, title:'[EC] Annotators (Computer Control 2)',                                     status:'pending', target:100, claimed:'2026-09-24', ar:8,   sent:7},
+    {id:508800, title:'Math experts for AI model training',                                       status:'removed', target:8,   claimed:'2026-09-29', ar:0,   sent:0},
+    {id:509005, title:'Senior SWE for AI training',                                              status:'pending', target:50,  claimed:'2026-10-01', ar:141, sent:28},
+    {id:509308, title:'Scientific Research Interview – EU & US',                                 status:'pending', target:75,  claimed:'2026-10-06', ar:667, sent:13},
+    {id:509317, title:'Scientific Research Interview – Asia & Latam',                            status:'pending', target:75,  claimed:'2026-10-06', ar:329, sent:27},
+  ],
+  patronus: [
+    {id:504375, title:'CAD Engineer for AI Model Evaluation',                                      status:'removed',          target:200, claimed:'2026-07-31',  ar:144,  sent:1},
+    {id:505006, title:'[EC] Senior Accountant – Financial Reporting [Treasury Bench]',            status:'active',           target:30,  claimed:'2026-08-10',  ar:674,  sent:218},
+    {id:505005, title:'[EC] CAD Design Engineer [CAD Bench]',                                     status:'removed',          target:200, claimed:'2026-08-10',  ar:335,  sent:97},
+    {id:505015, title:'[EC] External Audit Professionals [Finance SME Bench]',                    status:'pending',          target:200, claimed:'2026-08-10',  ar:529,  sent:79},
+    {id:505009, title:'[EC] Operations & Research Staff [Investment Banking Bench]',              status:'pending',          target:15,  claimed:'2026-08-10',  ar:138,  sent:42},
+    {id:506027, title:'[EC] Sr Commercial Contracts SME – AI Model Training',                    status:'pending',          target:15,  claimed:'2026-08-24',  ar:36,   sent:9},
+    {id:505971, title:'[EC] SAP Concur Expense Expert – AI Model Training',                      status:'active',           target:6,   claimed:'2026-08-24',  ar:30,   sent:13},
+    {id:506750, title:'[EC] Sr Cap Table SME [Cap Table Management Bench]',                      status:'pending',          target:10,  claimed:'2026-09-02',  ar:344,  sent:80},
+    {id:506918, title:'[EC] Sr Design SME [Designer Bench]',                                     status:'pending',          target:11,  claimed:'2026-09-03',  ar:207,  sent:74},
+    {id:506899, title:'[EC] Sr Equity Research SME [Equity Research Bench]',                     status:'pending_engineer', target:1,   claimed:'2026-09-03',  ar:20,   sent:15},
+    {id:507788, title:'[EC] Orion AdvisorTech SME [Orion Bench]',                                status:'pending_engineer', target:1,   claimed:'2026-09-16',  ar:40,   sent:3},
+    {id:508703, title:'[EC] Senior Trading SME [TradingTrace Bench]',                            status:'pending_engineer', target:1,   claimed:'2026-09-28',  ar:257,  sent:61},
+    {id:509022, title:'Healthcare Prior Authorization Specialist',                                 status:'pending',          target:30,  claimed:'2026-10-01',  ar:24,   sent:11},
+    {id:509035, title:'Privacy / Data Subject Request Analyst',                                   status:'pending',          target:30,  claimed:'2026-10-01',  ar:6,    sent:3},
+    {id:509021, title:'Healthcare Credentialing Specialist',                                      status:'pending',          target:30,  claimed:'2026-10-01',  ar:11,   sent:11},
+    {id:509016, title:'Litigation Simulation Paralegal',                                          status:'pending',          target:30,  claimed:'2026-10-01',  ar:18,   sent:6},
+    {id:509017, title:'Corporate/Transactional Paralegal',                                        status:'pending',          target:30,  claimed:'2026-10-01',  ar:12,   sent:5},
+    {id:509019, title:'Denials Management Specialist',                                            status:'pending',          target:30,  claimed:'2026-10-01',  ar:17,   sent:4},
+    {id:509018, title:'Contracts Specialist',                                                     status:'pending',          target:30,  claimed:'2026-10-01',  ar:14,   sent:8},
+    {id:509108, title:'Revenue Operations Analyst',                                               status:'pending',          target:30,  claimed:'2026-10-02',  ar:134,  sent:42},
+    {id:509129, title:'Sales Compensation / Commissions Analyst',                                 status:'pending',          target:30,  claimed:'2026-10-03',  ar:126,  sent:38},
+    {id:509134, title:'Customer Success Operations Analyst',                                      status:'pending',          target:30,  claimed:'2026-10-03',  ar:46,   sent:13},
+    {id:509209, title:'FP&A Analyst (Card or Consumer Lending)',                                  status:'pending',          target:30,  claimed:'2026-10-05',  ar:71,   sent:29},
+    {id:509202, title:'Credit Underwriting Expert – AI Training Platform',                       status:'pending',          target:30,  claimed:'2026-10-05',  ar:71,   sent:14},
+    {id:509212, title:'Card Disputes / Chargeback Analyst (Issuer)',                              status:'pending',          target:30,  claimed:'2026-10-05',  ar:43,   sent:14},
+    {id:509200, title:'AML/BSA Investigator',                                                     status:'pending',          target:30,  claimed:'2026-10-05',  ar:55,   sent:15},
+  ],
+  meridian: [
+    // Meridian AI (ClientId 982322)
+    {id:474040, title:'Finance Expert with Excel Proficiency for Custom Sheet Creations',         status:'drafted_by_sales', target:1,   claimed:'—',          ar:0,   sent:0},
+    {id:474041, title:'[EC] Reviewer – Excel Financial Models AI Training',                      status:'closed',           target:6,   claimed:'2025-11-18', ar:129, sent:8},
+    {id:475194, title:'[EC] Spreadsheet Creator – Financial Modeling AI Tool',                   status:'closed',           target:31,  claimed:'2025-11-26', ar:181, sent:31},
+    {id:479109, title:'[Internal] Reviewer – Excel Financial Models',                            status:'removed',          target:5,   claimed:'2026-01-02', ar:0,   sent:1},
+    {id:479577, title:'Spreadsheet Sanitizer – Financial Modeling AI Tool',                      status:'closed',           target:29,  claimed:'2026-01-07', ar:0,   sent:29},
+    {id:480174, title:'[EC] Financial Model & Prompt Creator',                                   status:'closed',           target:40,  claimed:'2026-01-13', ar:88,  sent:44},
+    {id:481644, title:'Spreadsheet Editor for Financial Modeling AI',                            status:'closed',           target:12,  claimed:'2026-01-21', ar:0,   sent:12},
+    // Meridian AI - Main (ClientId 987203)
+    {id:484364, title:'[EC] W3 Financial Model & Prompt Creator',                               status:'closed',           target:33,  claimed:'2026-02-10', ar:0,   sent:0},
+    {id:494767, title:'[EC] Reviewer – Financial Models AI Training W2',                        status:'active',           target:4,   claimed:'2026-04-30', ar:0,   sent:0},
+    {id:497653, title:'[EC] Reviewer – Financial Models AI Training W3',                        status:'removed',          target:30,  claimed:'2026-05-22', ar:0,   sent:0},
+    {id:499645, title:'[EC] Reviewer – Financial Models AI Training W3 (repeat)',               status:'removed',          target:4,   claimed:'2026-06-11', ar:0,   sent:0},
+    {id:504665, title:'[EC] Reviewer – Financial Models AI Training W3 (final)',                status:'closed',           target:3,   claimed:'2026-08-05', ar:0,   sent:0},
+    {id:505708, title:'[EC] STEM Chart Analyst for AI Model Training',                          status:'pending',          target:100, claimed:'2026-08-20', ar:0,   sent:0},
+  ],
+  hud: [
+    {id:500005, title:'[EC] Management Consultant – AI Evaluator W1',               status:'closed',   target:6,   claimed:'2026-06-15', ar:43,   sent:12},
+    {id:500660, title:'[EC] Senior Cybersecurity AI Engineer',                      status:'removed',  target:10,  claimed:'2026-06-22', ar:73,   sent:14},
+    {id:501362, title:'[EC] SWE Domain Lead – AI Benchmark [Director]',             status:'removed',  target:1,   claimed:'2026-06-29', ar:12,   sent:6},
+    {id:501360, title:'[EC] MC Domain Lead – AI Benchmark [Director]',              status:'removed',  target:1,   claimed:'2026-06-29', ar:27,   sent:5},
+    {id:501622, title:'[IJ] SRE / DevOps & Infrastructure Domain Expert',           status:'removed',  target:1,   claimed:'2026-07-01', ar:101,  sent:116},
+    {id:501625, title:'[IJ] Corporate Finance / FP&A Domain Expert',               status:'removed',  target:1,   claimed:'2026-07-01', ar:114,  sent:30},
+    {id:501624, title:'[IJ] Market & Competitive Research Domain Expert',           status:'removed',  target:1,   claimed:'2026-07-01', ar:357,  sent:131},
+    {id:501623, title:'[IJ] Operations & Supply Chain Domain Expert',               status:'removed',  target:1,   claimed:'2026-07-01', ar:149,  sent:30},
+    {id:501629, title:'[IJ] Compilers & Language Tooling Domain Expert',            status:'removed',  target:1,   claimed:'2026-07-01', ar:336,  sent:56},
+    {id:501620, title:'[IJ] Systems, Backend & Networking Domain Expert',           status:'removed',  target:1,   claimed:'2026-07-01', ar:752,  sent:297},
+    {id:501628, title:'[IJ] Database & Storage Systems Domain Expert',              status:'removed',  target:1,   claimed:'2026-07-01', ar:283,  sent:122},
+    {id:501621, title:'[IJ] M&A & Due Diligence Domain Expert',                    status:'removed',  target:1,   claimed:'2026-07-01', ar:113,  sent:42},
+    {id:501619, title:'[IJ] Growth & Corporate Strategy Domain Expert',             status:'removed',  target:5,   claimed:'2026-07-01', ar:177,  sent:64},
+    {id:501973, title:'SWE Director Bench (Staging/Internal)',                      status:'internal', target:1,   claimed:'2026-07-06', ar:0,    sent:2},
+    {id:503437, title:'SWE Bench – 300 seats (Staging/Internal)',                   status:'internal', target:300, claimed:'2026-07-21', ar:0,    sent:201},
+    {id:503610, title:'MC Bench – 150 seats (Staging/Internal)',                    status:'internal', target:150, claimed:'2026-07-23', ar:0,    sent:59},
+    {id:503877, title:'SWE Bench 2 – 600 seats (Staging/Internal)',                status:'internal', target:600, claimed:'2026-07-27', ar:0,    sent:0},
+  ],
+  askable: [
+    {id:507738, title:'[EC] Financial Expert with QuickBooks – AI Model Evaluation', status:'removed', target:10, claimed:'2026-09-15', ar:0, sent:0},
+    {id:509020, title:'Senior Software Engineer – AI Coding Evaluation Task',        status:'closed',  target:1,  claimed:'2026-10-01', ar:0, sent:1},
+  ],
+};
+
+// ── NTR Slack requests — times in EST (UTC−5)
+const REQS = [
+  ['2026-06-15', 9.50,'scale',    'Test',40],
+  ['2026-06-15',14.40,'hud',      'Management Consulting',4],
+  ['2026-06-22',16.22,'hud',      'Security - Hud.Ai',10],
+  ['2026-07-01', 9.75,'hud',      'Benchmarking',1],
+  ['2026-07-01', 9.77,'hud',      'Benchmarking (dup)',1],
+  ['2026-07-06',11.00,'hud',      'Benchmarking',5],
+  ['2026-07-06',11.07,'hud',      'Benchmarking',0],
+  ['2026-07-06',11.10,'hud',      'Benchmarking',5],
+  ['2026-07-06',11.18,'hud',      'Benchmarking',5],
+  ['2026-07-06',11.22,'hud',      'Benchmarking',5],
+  ['2026-07-06',11.28,'hud',      'Benchmarking',5],
+  ['2026-07-06',11.30,'hud',      'Benchmarking',5],
+  ['2026-07-06',11.30,'hud',      'Benchmarking',5],
+  ['2026-07-06',11.32,'hud',      'Benchmarking',5],
+  ['2026-08-11', 9.77,'scale',    'Scale Finance Bench',100],
+  ['2026-08-10',12.15,'patronus', 'Patronus CAD bench',200],
+  ['2026-08-10',12.18,'patronus', 'Finance & Accounting Bench',200],
+  ['2026-08-10',12.23,'patronus', 'Capital Markets Bench',200],
+  ['2026-08-10',12.25,'patronus', 'Financial Audit Bench',200],
+  ['2026-08-20', 7.28,'meridian', 'Chinchilla',100],
+  ['2026-08-24', 5.08,'patronus', 'SAP Concur Expense Bench',3],
+  ['2026-08-24',11.25,'patronus', 'Law screener',20],
+  ['2026-09-02', 6.67,'patronus', 'Cap Table Management Bench',1],
+  ['2026-09-03', 7.47,'patronus', 'Equity Research Bench',5],
+  ['2026-09-03',15.05,'patronus', 'Design Bench',24],
+  ['2026-09-16', 6.48,'patronus', 'Orion AdvisorTech',3],
+  ['2026-09-18', 9.87,'vetto',    'EdgeBench Reviewer (Rust)',8],
+  ['2026-09-22', 9.70,'patronus', 'Paralegal Bench',2],
+  ['2026-09-23', 8.50,'vetto',    'Egocentric Videos (Recorder)',80],
+  ['2026-09-23', 9.70,'vetto',    'Egocentric video (Narrator)',80],
+  ['2026-09-24',11.52,'vetto',    'Computer Control Round 2',8],
+  ['2026-09-28', 4.25,'patronus', 'TradingTrace',8],
+  ['2026-09-29', 4.42,'vetto',    'Rust additions',6],
+  ['2026-10-01',16.23,'vetto',    'Computer Control',10],
+  ['2026-10-05', 6.32,'patronus', 'Commercial credit underwriter',30],
+  ['2026-10-05', 6.35,'patronus', 'Card Disputes / Chargeback',30],
+  ['2026-10-05', 6.38,'patronus', 'FP&A Analyst',30],
+  ['2026-10-05', 6.43,'patronus', 'AML / BSA Investigator',30],
+  ['2026-10-05', 6.47,'patronus', 'Civil Litigation Paralegal',30],
+  ['2026-10-05', 6.48,'patronus', 'Corporate M&A Paralegal',30],
+  ['2026-10-05', 6.52,'patronus', 'Commercial Contracts Specialist',30],
+  ['2026-10-05', 6.53,'patronus', 'Privacy / DSR Analyst',30],
+  ['2026-10-05', 6.55,'patronus', 'Revenue Operations Analyst',30],
+  ['2026-10-05', 6.58,'patronus', 'Sales Compensation Analyst',30],
+  ['2026-10-05', 6.60,'patronus', 'Customer Success Operations',30],
+  ['2026-10-05', 6.63,'patronus', 'Health: Denials / AR Follow-Up',30],
+  ['2026-10-05', 6.65,'patronus', 'Health: Credentialing',30],
+  ['2026-10-05', 6.67,'patronus', 'Health: Prior Authorization',30],
+  ['2026-10-06',19.62,'vetto',    'TB-Science',162],
+  ['2026-10-12', 7.80,'scale',    'Scale AI - Aether',1],
+];
+
+// ── CDR weekly talent targets — computed dynamically from JOBS arrays ────────
+function buildCdrByWeek(){
+  const out={};
+  Object.values(JOBS).flat().forEach(j=>{
+    if(j.claimed==='—') return;
+    const w=weekMon(j.claimed);
+    out[w]=(out[w]||0)+j.target;
+  });
+  return out;
+}
+
+// ── CDR job counts for early weeks (replaces NTR for Jun 15–Aug 3) ─────────
+const CDR_EARLY_REQ = {
+  '2026-06-15':1,  // HUD 500005
+  '2026-06-22':1,  // HUD 500660
+  '2026-06-29':11, // HUD pilot batch (13 IJ + pilot jobs)
+  '2026-07-06':1,  // HUD 501973 internal
+  '2026-07-13':1,  // Scale 503184 (claimed Jul 17)
+  '2026-07-20':2,  // HUD Staging bench (503437 Jul21, 503610 Jul23)
+  '2026-07-27':2,  // HUD 503877 Jul27 + Patronus 504375 Jul31
+  '2026-08-03':1,  // 1 EC job claimed that week
+};
+const CDR_EARLY_CUTOFF = '2026-08-10'; // weeks >= this use NTR data
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const fmt = n => n != null ? Number(n).toLocaleString() : '—';
+const pct = (a,b) => b>0 ? Math.round(a/b*100) : 0;
+const cBy = id => CLIENTS.find(c=>c.id===id)||{};
+
+function weekMon(ds) {
+  const d=new Date(ds+'T00:00:00Z'), day=d.getUTCDay(), diff=day===0?-6:1-day;
+  d.setUTCDate(d.getUTCDate()+diff);
+  return d.toISOString().slice(0,10);
+}
+function wkLbl(mon) {
+  return new Date(mon+'T00:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
+}
+function hrStr(h) {
+  const hh=Math.floor(h), mm=String(Math.round((h%1)*60)).padStart(2,'0');
+  return h<12?`${hh||12}:${mm} AM`:h===12?`12:${mm} PM`:`${hh-12}:${mm} PM`;
+}
+
+const tt=document.getElementById('tt');
+function showTT(e,ttl,r1,r2){
+  document.getElementById('tt-ttl').textContent=ttl;
+  document.getElementById('tt-r1').innerHTML=r1||'';
+  document.getElementById('tt-r2').innerHTML=r2||'';
+  tt.style.display='block'; moveTT(e);
+}
+function moveTT(e){tt.style.left=Math.min(e.clientX+14,window.innerWidth-270)+'px';tt.style.top=(e.clientY-12)+'px';}
+function hideTT(){tt.style.display='none';}
+
+// ── Cards ──────────────────────────────────────────────────────────────────
+function renderCards(){
+  document.getElementById('card-grid').innerHTML=CLIENTS.map(c=>{
+    const fp=pct(c.sent,c.target);
+    return `<div class="card">
+      <div class="card-hdr">
+        <div class="dot" style="background:${c.hex}"></div>
+        <div class="card-name">${c.name}</div>
+        <span class="card-tag">${c.activeJobs}/${c.totalJobs} Jobs active</span>
+      </div>
+      <div class="kpi-band kb-outcome">
+        <div class="kpi"><div class="kpi-lbl"># Requests</div><div class="kpi-val">${c.totalJobs}</div></div>
+        <div class="kpi"><div class="kpi-lbl"># Activated Talents</div><div class="kpi-val">${fmt(c.activated)}</div></div>
+      </div>
+      <div class="kpi-band kb-volume">
+        <div class="kpi"><div class="kpi-lbl">Target</div><div class="kpi-val">${fmt(c.target)}</div></div>
+        <div class="kpi"><div class="kpi-lbl">Sent</div><div class="kpi-val">${fmt(c.sent)}</div></div>
+        <div class="kpi"><div class="kpi-lbl">AR Sent</div><div class="kpi-val">${fmt(c.ar)}</div></div>
+      </div>
+      <div class="kpi-band kb-sr">
+        <div class="kpi"><div class="kpi-lbl">SR Total</div><div class="kpi-val">${c.srTotal}</div></div>
+        <div class="kpi"><div class="kpi-lbl">SR Open</div><div class="kpi-val">${c.srOpen}</div></div>
+        <div class="kpi"><div class="kpi-lbl">SR Tal. Active</div><div class="kpi-val">${c.srTA}</div></div>
+      </div>
+      <div class="kpi-band kb-sr-pip">
+        <div class="kpi" style="border:none"><div class="kpi-lbl">SR Talents Pipeline (ever linked)</div><div class="kpi-val" style="font-size:15px">${fmt(c.srTP)}</div></div>
+      </div>
+      <div class="fill-bar">
+        <div class="fill-bar-row"><span>Sent / Target</span><span>${fp}%</span></div>
+        <div class="track"><div class="fill" style="width:${Math.min(fp,100)}%;background:${c.hex}"></div></div>
+      </div>
+      <div class="sla-band">
+        <div class="sla-item"><div class="sla-lbl">Claimed→AR</div><div class="sla-val">${c.sla1}</div><div class="sla-desc">hrs median</div></div>
+        <div class="sla-item"><div class="sla-lbl">Claimed→Sent</div><div class="sla-val">${c.sla2}</div><div class="sla-desc">days median</div></div>
+        <div class="sla-item"><div class="sla-lbl">Sent→Hired</div><div class="sla-val">${c.sla3}</div><div class="sla-desc">days median</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Table ──────────────────────────────────────────────────────────────────
+function stBadge(s){return `<span class="st st-${s}">${s.replace(/_/g,' ')}</span>`;}
+
+function toggleJobs(cid){
+  const rows=document.querySelectorAll(`.jr-${cid}`);
+  const chv=document.getElementById(`chv-${cid}`);
+  const wasOpen=rows[0]&&rows[0].style.display!=='none';
+  rows.forEach(r=>r.style.display=wasOpen?'none':'table-row');
+  if(chv) chv.classList.toggle('open',!wasOpen);
+}
+
+function renderTable(){
+  const s=(k)=>CLIENTS.reduce((a,c)=>a+(typeof c[k]==='number'?c[k]:0),0);
+  const rows=CLIENTS.map(c=>{
+    const fp=pct(c.sent,c.target);
+    const jobs=JOBS[c.id]||[];
+    const clientRow=`<tr class="client-row" onclick="toggleJobs('${c.id}')">
+      <td><div class="cd"><span class="chv" id="chv-${c.id}">▶</span><div class="dot2" style="background:${c.hex}"></div>${c.name}</div></td>
+      <td class="r">${c.activeJobs}</td><td class="r">${c.totalJobs}</td>
+      <td class="r">${fmt(c.target)}</td><td class="r">${fmt(c.sent)}</td>
+      <td class="r">${fp}%</td><td class="r">${fmt(c.ar)}</td>
+      <td class="r">${c.srTotal}</td><td class="r">${c.srOpen}</td>
+      <td class="r">${c.srTA}</td><td class="r">${fmt(c.srTP)}</td>
+      <td class="r">${c.ntr}</td>
+      <td class="r">${c.sla1}</td><td class="r">${c.sla2}</td><td class="r">${c.sla3}</td>
+    </tr>`;
+    const jobRows=jobs.map(j=>`<tr class="job-row jr-${c.id}" style="display:none">
+      <td><a href="https://staff.toptal.com/jobs/${j.id}" target="_blank" class="job-link">#${j.id}</a>&nbsp;${j.title}</td>
+      <td class="r" colspan="2">${j.claimed}</td>
+      <td class="r">${j.target}</td>
+      <td class="r">${j.sent}</td>
+      <td class="r">${j.target>0?pct(j.sent,j.target)+'%':'—'}</td>
+      <td class="r">${fmt(j.ar)}</td>
+      <td class="r" colspan="4">${stBadge(j.status)}</td>
+      <td class="r" colspan="3">—</td>
+    </tr>`).join('');
+    return clientRow+jobRows;
+  }).join('');
+  const totalRow=`<tr class="tot">
+    <td><strong>Total / Median</strong></td>
+    <td class="r">${s('activeJobs')}</td><td class="r">${s('totalJobs')}</td>
+    <td class="r">${fmt(s('target'))}</td><td class="r">${fmt(s('sent'))}</td>
+    <td class="r">${pct(s('sent'),s('target'))}%</td>
+    <td class="r">${fmt(s('ar'))}</td>
+    <td class="r">${s('srTotal')}</td><td class="r">${s('srOpen')}</td>
+    <td class="r">${s('srTA')}</td><td class="r">${fmt(s('srTP'))}</td>
+    <td class="r">${s('ntr')}</td>
+    <td class="r">0.1h</td><td class="r">0.8d</td><td class="r">4.5d</td>
+  </tr>`;
+  document.getElementById('tbl-body').innerHTML=rows+totalRow;
+}
+
+// ── Bar chart ──────────────────────────────────────────────────────────────
+function renderBar(){
+  const svg=document.getElementById('sv-bar');
+  const W=svg.clientWidth||900, H=240, mL=52, mR=16, mT=32, mB=58;
+  const pW=W-mL-mR, pH=H-mT-mB;
+
+  const cdrByWeek=buildCdrByWeek();
+
+  // Build # Requests badge: CDR count for early weeks, NTR count for later
+  const ntrByWeek={};
+  REQS.forEach(([d])=>{const w=weekMon(d);ntrByWeek[w]=(ntrByWeek[w]||0)+1;});
+
+  const weeks=[...new Set([...Object.keys(cdrByWeek),...Object.keys(ntrByWeek)])]
+    .filter(w=>w>='2026-06-01').sort();
+
+  const maxTgt=Math.max(...weeks.map(w=>cdrByWeek[w]||0),1);
+  const xStep=pW/weeks.length, bW=Math.min(xStep*0.65,34);
+
+  let g='';
+  const yVals=[0,100,200,300,400,500,600,700].filter(v=>v<=maxTgt+80);
+  yVals.forEach(v=>{
+    const y=mT+pH-(v/maxTgt)*pH;
+    g+=`<line x1="${mL}" y1="${y}" x2="${W-mR}" y2="${y}" stroke="#E2E8F0" stroke-width="1"/>
+        <text x="${mL-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#718096">${v>=1000?v/1000+'k':v}</text>`;
+  });
+  g+=`<text x="16" y="${mT+pH/2}" text-anchor="middle" font-size="10" fill="#718096" transform="rotate(-90,16,${mT+pH/2})"># Talents</text>`;
+
+  weeks.forEach((w,wi)=>{
+    const cx=mL+wi*xStep+xStep/2, xl=cx-bW/2;
+    const tgt=cdrByWeek[w]||0;
+    const badge = w < CDR_EARLY_CUTOFF ? (CDR_EARLY_REQ[w]||0) : (ntrByWeek[w]||0);
+    const bh=(tgt/maxTgt)*pH, barY=mT+pH-bh;
+
+    if(tgt>0){
+      g+=`<rect x="${xl}" y="${barY}" width="${bW}" height="${bh}" rx="3" fill="#1B3870" style="cursor:pointer"
+          data-w="${wkLbl(w)}" data-tgt="${tgt}" data-badge="${badge}"/>`;
+      if(bh>18)
+        g+=`<text x="${cx}" y="${barY+bh/2+4}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.75)" font-weight="600">${tgt}</text>`;
+    }
+    if(badge>0){
+      const by=tgt>0?barY-20:mT+pH-20;
+      g+=`<circle cx="${cx}" cy="${by}" r="10" fill="#C05621" style="cursor:pointer"
+          data-w="${wkLbl(w)}" data-tgt="${tgt}" data-badge="${badge}"/>
+          <text x="${cx}" y="${by+4}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">${badge}</text>`;
+    }
+    const lx=cx, ly=mT+pH+14;
+    g+=`<text x="${lx}" y="${ly}" text-anchor="end" font-size="9" fill="#718096" transform="rotate(-40,${lx},${ly})">${wkLbl(w)}</text>`;
+  });
+
+  g+=`<line x1="${mL}" y1="${mT+pH}" x2="${W-mR}" y2="${mT+pH}" stroke="#CBD5E0" stroke-width="1.5"/>`;
+  g+=`<rect x="${mL}" y="7" width="13" height="11" rx="2" fill="#1B3870"/>
+      <text x="${mL+17}" y="17" font-size="10" fill="#4A5568"># Talents (CDR)</text>
+      <circle cx="${mL+152}" cy="12" r="8" fill="#C05621"/>
+      <text x="${mL+152}" y="16" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">5</text>
+      <text x="${mL+164}" y="17" font-size="10" fill="#4A5568"># Requests</text>`;
+
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('height',H);
+  svg.innerHTML=g;
+
+  svg.querySelectorAll('[data-tgt],[data-badge]').forEach(el=>{
+    el.addEventListener('mouseenter',e=>showTT(e,el.dataset.w,
+      el.dataset.tgt>0?`# Talents: <b>${Number(el.dataset.tgt).toLocaleString()}</b> (CDR)`:'',
+      el.dataset.badge>0?`# Requests: <b>${el.dataset.badge}</b>`:''
+    ));
+    el.addEventListener('mousemove',moveTT);
+    el.addEventListener('mouseleave',hideTT);
+  });
+}
+
+// ── Scatter: week × hour EST ───────────────────────────────────────────────
+function renderScatter(){
+  const svg=document.getElementById('sv-sc');
+  const W=svg.clientWidth||900, H=260, mL=50, mR=16, mT=10, mB=58;
+  const pW=W-mL-mR, pH=H-mT-mB;
+
+  const weeks=[...new Set(REQS.map(([d])=>weekMon(d)))].sort();
+  const xStep=pW/weeks.length;
+  const xOf=w=>mL+weeks.indexOf(w)*xStep+xStep/2;
+  const yOf=h=>mT+(h/24)*pH; // morning at top, evening at bottom
+
+  // Find peak 3-hour window (most REQS)
+  const hBucket={};
+  REQS.forEach(([,h])=>{const hi=Math.floor(h);hBucket[hi]=(hBucket[hi]||0)+1;});
+  let peakCount=0,peakH=6;
+  for(let h=0;h<=21;h++){
+    const c=(hBucket[h]||0)+(hBucket[h+1]||0)+(hBucket[h+2]||0)+(hBucket[h+3]||0);
+    if(c>peakCount){peakCount=c;peakH=h;}
+  }
+
+  let g='';
+  // Highlight peak window
+  const pyT=yOf(peakH), pyB=yOf(peakH+4);
+  g+=`<rect x="${mL}" y="${pyT}" width="${pW}" height="${pyB-pyT}" fill="rgba(44,95,211,0.06)" rx="2"/>
+      <text x="${W-mR-4}" y="${pyT-4}" text-anchor="end" font-size="9" fill="#2C5FD3" font-weight="600">peak window</text>`;
+
+  [0,3,6,9,12,15,18,21,24].forEach(h=>{
+    const y=yOf(h);
+    const lbl=h===0?'12am':h<12?`${h}am`:h===12?'12pm':h===24?'':h>12?`${h-12}pm`:'';
+    g+=`<line x1="${mL}" y1="${y}" x2="${W-mR}" y2="${y}" stroke="#E2E8F0" stroke-width="1"${h%6!==0?' stroke-dasharray="3,4"':''}/>
+        <text x="${mL-5}" y="${y+4}" text-anchor="end" font-size="9" fill="#718096">${lbl}</text>`;
+  });
+  weeks.forEach(w=>{
+    const x=xOf(w);
+    g+=`<line x1="${x}" y1="${mT+pH}" x2="${x}" y2="${mT+pH+5}" stroke="#CBD5E0" stroke-width="1"/>`;
+    const lx=x, ly=mT+pH+14;
+    g+=`<text x="${lx}" y="${ly}" text-anchor="end" font-size="9" fill="#718096" transform="rotate(-40,${lx},${ly})">${wkLbl(w)}</text>`;
+  });
+  g+=`<line x1="${mL}" y1="${mT+pH}" x2="${W-mR}" y2="${mT+pH}" stroke="#CBD5E0" stroke-width="1.5"/>`;
+
+  const jCount={}, jIdx={};
+  REQS.forEach(([d,,cid])=>{const k=weekMon(d)+'|'+cid;jCount[k]=(jCount[k]||0)+1;});
+  REQS.forEach(([date,hour,cid,proj,hires])=>{
+    const w=weekMon(date), k=w+'|'+cid;
+    if(jIdx[k]===undefined) jIdx[k]=0;
+    const n=jCount[k], idx=jIdx[k]++;
+    const spread=Math.min(xStep*0.5,18);
+    const xOff=n>1?((idx/(n-1))-0.5)*spread:0;
+    const c=cBy(cid);
+    g+=`<circle cx="${xOf(w)+xOff}" cy="${yOf(hour)}" r="5" fill="#2C5FD3" stroke="#fff" stroke-width="1.5"
+        style="cursor:pointer;opacity:0.75"
+        data-w="${wkLbl(w)}" data-c="${c.name||cid}" data-t="${hrStr(hour)}" data-p="${proj}" data-h="${hires}"/>`;
+  });
+
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('height',H);
+  svg.innerHTML=g;
+
+  svg.querySelectorAll('circle').forEach(el=>{
+    el.addEventListener('mouseenter',e=>showTT(e,el.dataset.p,
+      `${el.dataset.c} &nbsp;·&nbsp; ${el.dataset.w}`,
+      `Time (EST): <b>${el.dataset.t}</b> &nbsp;·&nbsp; ${el.dataset.h} hires`
+    ));
+    el.addEventListener('mousemove',moveTT);
+    el.addEventListener('mouseleave',hideTT);
+  });
+}
+
+renderCards();
+renderTable();
+requestAnimationFrame(()=>{renderBar();renderScatter();});
+let rt;
+window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{renderBar();renderScatter();},120);});
+</script>
+</body>
+</html>
